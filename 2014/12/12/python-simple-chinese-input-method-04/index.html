@@ -1,0 +1,495 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>python实现简易中文输入法（四）：拼音流切分 | Songboyu&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Songboyu">
+    
+    <meta name="description" content="前一博客：将拼音序列如[&amp;#39;ce&amp;#39;,&amp;#39;shi&amp;#39;,&amp;#39;zhong&amp;#39;,&amp;#39;wen&amp;#39;,&amp;#39;shu&amp;#39;,&amp;#39;ru&amp;#39;,&amp;#39;fa&amp;#39;]转为汉字串,
+本篇博客：如何将ceshizhongwenshurufa这样的拼音流切分为以上形式。
+
+建立拼音Tire树
+建立一个如下图所示的Tire树结构：
+
+在音节树中, 根结点的儿子为所有的可作为拼音开头的字母。
+再有这些字母生出合法的音节, 其中灰色的节点表示不可终结。
+通过对树的访问很方便地判断哪些是合法拼音, 哪些是合法拼音的一部分。
+首先需要一个所有有效拼音的列表 pinyin_list.txt">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="Songboyu&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Songboyu&#39;s Blog" title="Songboyu&#39;s Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Songboyu&#39;s Blog">Songboyu&#39;s Blog</a></h1>
+				<h2 class="blog-motto">生活赋予我们一种巨大而又无限高贵的礼品，这就是青春。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/12/python-simple-chinese-input-method-04/" title="python实现简易中文输入法（四）：拼音流切分" itemprop="url">python实现简易中文输入法（四）：拼音流切分</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="http://yoursite.com/about" title="Songboyu" target="_blank" itemprop="author">Songboyu</a>
+		
+  <p class="article-time">
+    <time datetime="2014-12-11T17:29:35.000Z" itemprop="datePublished"> Published Dec 12 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#建立拼音Tire树"><span class="toc-number">1.</span> <span class="toc-text">建立拼音Tire树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#切分拼音流"><span class="toc-number">2.</span> <span class="toc-text">切分拼音流</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#测试"><span class="toc-number">3.</span> <span class="toc-text">测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#获得代码"><span class="toc-number">4.</span> <span class="toc-text">获得代码</span></a></li></ol>
+		
+		</div>
+		
+		<ul>
+<li>前一博客：将拼音序列如<code>[&#39;ce&#39;,&#39;shi&#39;,&#39;zhong&#39;,&#39;wen&#39;,&#39;shu&#39;,&#39;ru&#39;,&#39;fa&#39;]</code>转为汉字串,</li>
+<li>本篇博客：如何将<code>ceshizhongwenshurufa</code>这样的拼音流切分为以上形式。</li>
+</ul>
+<h2 id="建立拼音Tire树">建立拼音Tire树</h2>
+<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-trie.png" alt="拼音Tire树"></p>
+<ul>
+<li>在音节树中, 根结点的儿子为所有的可作为拼音开头的字母。</li>
+<li>再有这些字母生出合法的音节, 其中灰色的节点表示不可终结。</li>
+<li>通过对树的访问很方便地判断哪些是合法拼音, 哪些是合法拼音的一部分。</li>
+<li>首先需要一个所有有效拼音的列表 <a href="https://raw.githubusercontent.com/songboyu/NLP-test/master/pinyin/pinyin_list.txt" target="_blank" rel="external">pinyin_list.txt</a><br><a id="more"></a><br>Node节点结构</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Node</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        self.word = <span class="keyword">None</span></div><div class="line">        self.children = {}</div></pre></td></tr></table></figure>
+
+<p>后续可以用到两个方法：</p>
+<ul>
+<li><code>insert</code>: 初始化Tire树时使用</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">insert</span><span class="params">(self, word)</span>:</span></div><div class="line">    node = self.root</div><div class="line">    <span class="keyword">for</span> c <span class="keyword">in</span> word:</div><div class="line">        <span class="keyword">if</span> c <span class="keyword">not</span> <span class="keyword">in</span> node.children:</div><div class="line">            node.children[c] = Node()</div><div class="line">        node = node.children[c]</div><div class="line">    node.word = word</div></pre></td></tr></table></figure>
+
+<ul>
+<li><code>find_initial_with</code>: 判断拼音序列是否为有效序列或有效序列的一部分</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_initial_with</span><span class="params">(self, prefix_word)</span>:</span></div><div class="line">    node = self.root</div><div class="line">    <span class="keyword">for</span> c <span class="keyword">in</span> prefix_word:</div><div class="line">        <span class="keyword">if</span> c <span class="keyword">not</span> <span class="keyword">in</span> node.children:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">False</span></div><div class="line">        node = node.children[c]</div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> node:</div><div class="line">        <span class="keyword">return</span> <span class="keyword">False</span></div><div class="line">    <span class="keyword">return</span> <span class="keyword">True</span></div></pre></td></tr></table></figure>
+
+<h2 id="切分拼音流">切分拼音流</h2>
+<p>初始化时，读取文件建立Tire树</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, pinyins)</span>:</span></div><div class="line">    self.pinyins = pinyins</div><div class="line">    <span class="comment"># 读入所有有效拼音</span></div><div class="line">    self.tree = Trie()</div><div class="line">    f = open(<span class="string">'pinyin/pinyin_list.txt'</span>)</div><div class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> f:</div><div class="line">        self.tree.insert(line.split()[<span class="number">0</span>])</div><div class="line">    f.close()</div></pre></td></tr></table></figure>
+
+<p>切分的主函数流程<br><img src="/img/pinyin-split.png" alt="切分算法流程"></p>
+<ul>
+<li>算法根据汉语拼音的规则, 对用户输入的合法拼音流进行切分。</li>
+<li>为了程序实现上述算法，需要建立以下结构：<ol>
+<li>汉语拼音声母表（包含零声母）：list</li>
+<li>有效汉语拼音表：tire树</li>
+<li>需要特殊处理的iuv,grn：list</li>
+<li>当前输入：str</li>
+<li>切分结果：list</li>
+</ol>
+</li>
+</ul>
+<p>切分拼音流主函数代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">split</span><span class="params">(self)</span>:</span></div><div class="line">    <span class="string">'''</span></div><div class="line">    分割函数</div><div class="line">    @param pinyin:  拼音串 str</div><div class="line">    @return:        分割后的拼音列表 list</div><div class="line">    '''</div><div class="line">    <span class="comment"># 可作为拼音开头的字母</span></div><div class="line">    pinyin_initials = [<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'e'</span>, <span class="string">'p'</span>, <span class="string">'m'</span>, <span class="string">'f'</span>, <span class="string">'d'</span>,</div><div class="line">                       <span class="string">'t'</span>, <span class="string">'n'</span>, <span class="string">'l'</span>, <span class="string">'g'</span>, <span class="string">'k'</span>, <span class="string">'h'</span>, <span class="string">'j'</span>,</div><div class="line">                       <span class="string">'q'</span>, <span class="string">'x'</span>, <span class="string">'r'</span>, <span class="string">'z'</span>, <span class="string">'c'</span>, <span class="string">'s'</span>, <span class="string">'y'</span>, <span class="string">'w'</span>]</div><div class="line">    <span class="comment"># pinyin_initials = self.tree.root.children</span></div><div class="line">    iuv = [<span class="string">'i'</span>,<span class="string">'u'</span>,<span class="string">'v'</span>]</div><div class="line">    grn = [<span class="string">'g'</span>,<span class="string">'r'</span>,<span class="string">'n'</span>]</div><div class="line"></div><div class="line">    input = <span class="string">''</span></div><div class="line">    result = []</div><div class="line"></div><div class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(self.pinyins)):</div><div class="line">        c = self.pinyins[i]</div><div class="line">        <span class="comment"># 读入字符 c</span></div><div class="line">        input += c</div><div class="line">        <span class="comment"># c是 i|u|v，并且是拼音串的首字母</span></div><div class="line">        <span class="keyword">if</span> c <span class="keyword">in</span> iuv <span class="keyword">and</span> len(input)==<span class="number">1</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">False</span>,<span class="keyword">None</span></div><div class="line">        <span class="comment"># 当前拼音有效或者是有效拼音的一部分</span></div><div class="line">        <span class="keyword">if</span> self.tree.find_initial_with(input):</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        <span class="comment"># c是声母</span></div><div class="line">        <span class="keyword">if</span> c <span class="keyword">in</span> pinyin_initials:</div><div class="line">            <span class="comment"># 前面的拼音为有效拼音</span></div><div class="line">            <span class="keyword">if</span> self.tree.find_initial_with(input[:-<span class="number">1</span>]):</div><div class="line">                <span class="comment"># 在c前断开</span></div><div class="line">                result.append(input[:-<span class="number">1</span>])</div><div class="line">                input = input[-<span class="number">1</span>:]</div><div class="line">                <span class="keyword">continue</span></div><div class="line">            <span class="keyword">else</span>:</div><div class="line">                <span class="keyword">return</span> <span class="keyword">False</span>,<span class="keyword">None</span></div><div class="line">        <span class="comment"># 倒数第二个字母为 g|r|n</span></div><div class="line">        <span class="keyword">elif</span> input[-<span class="number">2</span>:-<span class="number">1</span>] <span class="keyword">in</span> grn:</div><div class="line">            <span class="comment"># 在 g|r|n 前断开有效</span></div><div class="line">            <span class="keyword">if</span> self.tree.find_initial_with(input[:-<span class="number">2</span>]):</div><div class="line">                <span class="comment"># 在 g|r|n 前断开</span></div><div class="line">                result.append(input[:-<span class="number">2</span>])</div><div class="line">                input = input[-<span class="number">2</span>:]</div><div class="line">                <span class="keyword">continue</span></div><div class="line">            <span class="comment"># 在 g|r|n 后断开有效</span></div><div class="line">            <span class="keyword">elif</span> self.tree.find_initial_with(input[:-<span class="number">1</span>]):</div><div class="line">                <span class="comment"># 在 g|r|n 后断开</span></div><div class="line">                result.append(input[:-<span class="number">1</span>])</div><div class="line">                input = input[-<span class="number">1</span>:]</div><div class="line">                <span class="keyword">continue</span></div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            <span class="comment"># 单独断开</span></div><div class="line">            result.append(input)</div><div class="line">            input = <span class="string">''</span></div><div class="line"></div><div class="line">    result.append(input)</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">True</span>,result</div></pre></td></tr></table></figure>
+
+<h2 id="测试">测试</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    pinyins = pinyin(<span class="string">'woaizhonghuarenmingongheguo'</span>)</div><div class="line">    <span class="keyword">print</span> pinyins.split()</div></pre></td></tr></table></figure>
+
+<p>测试结果如下：<br><img src="/img/pinyin-result.png" alt="测试结果"></p>
+<h2 id="获得代码">获得代码</h2>
+<p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/python/">python</a>►<a class="article-category-link" href="/categories/python/NLP/">NLP</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/python/">python</a><a href="/tags/NLP/">NLP</a><a href="/tags/split/">split</a><a href="/tags/pinyin/">pinyin</a>
+  </div>
+
+</div>
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2014/12/12/python-simple-chinese-input-method-04/" data-title="python实现简易中文输入法（四）：拼音流切分 | Songboyu&#39;s Blog" data-tsina="3178396551" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2014/12/12/python-simple-chinese-input-method-03/"  title="python实现简易中文输入法（三）：拼音序列转为汉字串">
+ <strong>下一篇：</strong><br/> 
+ <span>python实现简易中文输入法（三）：拼音序列转为汉字串
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#建立拼音Tire树"><span class="toc-number">1.</span> <span class="toc-text">建立拼音Tire树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#切分拼音流"><span class="toc-number">2.</span> <span class="toc-text">切分拼音流</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#测试"><span class="toc-number">3.</span> <span class="toc-text">测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#获得代码"><span class="toc-number">4.</span> <span class="toc-text">获得代码</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+			<li><a href="/categories/python/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/categories/python/" title="python">python<sup>4</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/tags/python/" title="python">python<sup>4</sup></a></li>
+		
+			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
+		
+			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+		
+			<li><a href="/tags/pinyin/" title="pinyin">pinyin<sup>2</sup></a></li>
+		
+			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
+		
+			<li><a href="/tags/viterbi/" title="viterbi">viterbi<sup>1</sup></a></li>
+		
+			<li><a href="/tags/model/" title="model">model<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">Weibo</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=3178396551&verifier=82b1b67f&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Songboyu in Harbin China.  <br/>
+			I&#39;ll share my learning experience with you at this blog.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/songboyu" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/songboyu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:soongboyu@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Pacman">Jacman</a> © 2014 
+		
+		<a href="http://yoursite.com/about" target="_blank" title="Songboyu">Songboyu</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"songboyu"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2fd5b3893f5e8ba3ca7901110ec5446a' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+  </body>
+</html>

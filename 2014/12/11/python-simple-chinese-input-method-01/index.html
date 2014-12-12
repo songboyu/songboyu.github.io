@@ -1,0 +1,462 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>python实现简易中文输入法（一）：分词、词频统计 | Songboyu&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Songboyu">
+    
+    <meta name="description" content="做一个NLP的实验当然要从最基本的步骤做起，那就是分词和词频统计
+分词
+使用简单快速的正向最大匹配分词。
+123456789101112131415161718192021222324252627def fwd_mm_seg(wordDict, maxLen, str):    &#39;&#39;&#39;正向最大匹配分词    @param wordDict:    词表    @param maxLen:      词最大长度（自定义）    @param str:         待分词的字串    @return:            分词序列（List）    &#39;&#39;&#39;    wordList = []    segStr = str    segStrLen = len(segStr)    while segStrLen &amp;gt; 0:        if segStrLen &amp;gt; maxLen:            wordLen = maxLen        else:            wordLen = segStrLen        subStr = segStr[0:wordLen]        while wordLen &amp;gt; 1:            if subStr in wordDict:                break            else:                wordLen = wordLen - 1                subStr = subStr[0:wordLen]        wordList.append(subStr)        segStr = segStr[wordLen:]        segStrLen = segStrLen - wordLen    return wordList">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="Songboyu&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Songboyu&#39;s Blog" title="Songboyu&#39;s Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Songboyu&#39;s Blog">Songboyu&#39;s Blog</a></h1>
+				<h2 class="blog-motto">生活赋予我们一种巨大而又无限高贵的礼品，这就是青春。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/11/python-simple-chinese-input-method-01/" title="python实现简易中文输入法（一）：分词、词频统计" itemprop="url">python实现简易中文输入法（一）：分词、词频统计</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="http://yoursite.com/about" title="Songboyu" target="_blank" itemprop="author">Songboyu</a>
+		
+  <p class="article-time">
+    <time datetime="2014-12-11T14:04:25.000Z" itemprop="datePublished"> Published Dec 11 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#分词"><span class="toc-number">1.</span> <span class="toc-text">分词</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#统计一元、二元词频"><span class="toc-number">2.</span> <span class="toc-text">统计一元、二元词频</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#获得代码"><span class="toc-number">3.</span> <span class="toc-text">获得代码</span></a></li></ol>
+		
+		</div>
+		
+		<p>做一个NLP的实验当然要从最基本的步骤做起，那就是分词和词频统计</p>
+<h2 id="分词">分词</h2>
+<p>使用简单快速的正向最大匹配分词。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">fwd_mm_seg</span><span class="params">(wordDict, maxLen, str)</span>:</span></div><div class="line">    <span class="string">'''正向最大匹配分词</span></div><div class="line"></div><div class="line">    @param wordDict:    词表</div><div class="line">    @param maxLen:      词最大长度（自定义）</div><div class="line">    @param str:         待分词的字串</div><div class="line">    @return:            分词序列（List）</div><div class="line">    '''</div><div class="line">    wordList = []</div><div class="line">    segStr = str</div><div class="line">    segStrLen = len(segStr)</div><div class="line">    <span class="keyword">while</span> segStrLen &gt; <span class="number">0</span>:</div><div class="line">        <span class="keyword">if</span> segStrLen &gt; maxLen:</div><div class="line">            wordLen = maxLen</div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            wordLen = segStrLen</div><div class="line">        subStr = segStr[<span class="number">0</span>:wordLen]</div><div class="line">        <span class="keyword">while</span> wordLen &gt; <span class="number">1</span>:</div><div class="line">            <span class="keyword">if</span> subStr <span class="keyword">in</span> wordDict:</div><div class="line">                <span class="keyword">break</span></div><div class="line">            <span class="keyword">else</span>:</div><div class="line">                wordLen = wordLen - <span class="number">1</span></div><div class="line">                subStr = subStr[<span class="number">0</span>:wordLen]</div><div class="line">        wordList.append(subStr)</div><div class="line">        segStr = segStr[wordLen:]</div><div class="line">        segStrLen = segStrLen - wordLen</div><div class="line">    <span class="keyword">return</span> wordList</div></pre></td></tr></table></figure>
+
+<p><a id="more"></a><br>使用96年人民日报作为测试语料，注意：</p>
+<ol>
+<li>读取文件时原文件的每一段作为一行输入给分词函数，以免词被分割。</li>
+<li>每一短句（以, 。？ ！分割）作为一行输出，便于统计词频时计算词在行首的概率，作为viterbi算法的初始概率。</li>
+<li>记得过滤空行以及特殊字符</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line">CODEC = <span class="string">'utf8'</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">file_seg_process</span><span class="params">(filename, method)</span>:</span></div><div class="line">    <span class="string">'''</span></div><div class="line">    @param filename: 文件名</div><div class="line">    @param method:   分词算法 { 0:正向，1:逆向 }</div><div class="line">    '''</div><div class="line">    <span class="comment"># 打开文件</span></div><div class="line">    fp_dict = open(<span class="string">'dict.txt'</span>)</div><div class="line">    fp_input = open(<span class="string">'corpus/'</span>+filename)</div><div class="line">    fp_output = open(<span class="string">'corpus_seg/'</span>+filename, <span class="string">'w'</span>)</div><div class="line">    </div><div class="line">    wordDict = {} </div><div class="line">    <span class="comment"># 读取字典到内存中</span></div><div class="line">    <span class="keyword">for</span> eachWord <span class="keyword">in</span> fp_dict:</div><div class="line">        wordDict[u(eachWord.split()[<span class="number">0</span>].strip(), CODEC)] = <span class="number">1</span></div><div class="line"></div><div class="line">    <span class="comment"># 对input每一行操作</span></div><div class="line">    str = <span class="string">''</span></div><div class="line">    <span class="keyword">for</span> eachLine <span class="keyword">in</span> fp_input:</div><div class="line">        line_out = <span class="string">''</span></div><div class="line">        <span class="comment"># 每一段作为一行输入给分词函数</span></div><div class="line">        sub = strQ2B(u(eachLine.strip(), CODEC))</div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> sub.startswith(<span class="string">'  '</span>):</div><div class="line">            str += sub</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        strlen = len(str)</div><div class="line">        <span class="keyword">while</span> strlen &gt; <span class="number">0</span>:</div><div class="line">            <span class="comment"># 英文字符或数字--原文输出</span></div><div class="line">            m = re.match(<span class="string">r'\w+'</span>, str)</div><div class="line">            <span class="keyword">if</span> m <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">                subStr = m.group()</div><div class="line">                line_out += subStr.encode(CODEC)+<span class="string">'/'</span></div><div class="line">                subLen = len(subStr)</div><div class="line">                str = str[subLen:]</div><div class="line">                strlen = strlen - subLen</div><div class="line">                <span class="keyword">continue</span></div><div class="line">            <span class="comment"># 短句结尾标志--输出换行</span></div><div class="line">            <span class="keyword">if</span> str[<span class="number">0</span>:<span class="number">1</span>].encode(CODEC) <span class="keyword">in</span> [<span class="string">','</span>,<span class="string">'。'</span>,<span class="string">'!'</span>,<span class="string">'?'</span>,<span class="string">':'</span>]:</div><div class="line">                subStr = str[<span class="number">0</span>:<span class="number">1</span>]</div><div class="line">                line_out += <span class="string">'\n'</span></div><div class="line">                subLen = len(subStr)</div><div class="line">                str = str[subLen:]</div><div class="line">                strlen = strlen - subLen</div><div class="line">            <span class="comment"># 汉字--分词处理，输出 词/词</span></div><div class="line">            m = re.match(<span class="string">ur'[\u4e00-\u9fa5]+'</span>, str)</div><div class="line">            <span class="keyword">if</span> m <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">                subStr = m.group()</div><div class="line">                <span class="keyword">if</span> method == <span class="number">0</span>:</div><div class="line">                    <span class="comment"># 正向最大匹配</span></div><div class="line">                    wordList = fwd_mm_seg(wordDict, <span class="number">8</span>, subStr)</div><div class="line">                <span class="keyword">else</span>:</div><div class="line">                    <span class="comment"># 逆向最大匹配</span></div><div class="line">                    wordList = bwd_mm_seg(wordDict, <span class="number">8</span>, subStr)</div><div class="line">                line_out += wordList[<span class="number">0</span>].encode(CODEC)+<span class="string">'/'</span></div><div class="line">                <span class="keyword">for</span> eachWord <span class="keyword">in</span> wordList[<span class="number">1</span>:]:</div><div class="line">                    line_out += eachWord.encode(CODEC)+<span class="string">'/'</span></div><div class="line">                subLen = len(subStr)</div><div class="line">                str = str[subLen:]</div><div class="line">                strlen = strlen - subLen</div><div class="line">                <span class="keyword">continue</span></div><div class="line">            <span class="comment"># 其他特殊字符--跳过</span></div><div class="line">            str = str[<span class="number">1</span>:]</div><div class="line">            strlen = strlen - <span class="number">1</span></div><div class="line">        <span class="comment"># 跳过处理后为空行的段落</span></div><div class="line">        <span class="keyword">if</span> len(line_out.strip()) == <span class="number">0</span>:</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        <span class="comment"># 写入文件</span></div><div class="line">        fp_output.write(line_out + <span class="string">'\n'</span>)</div><div class="line">        str = sub</div><div class="line">    <span class="comment"># close file</span></div><div class="line">    fp_input.close()</div><div class="line">    fp_dict.close()</div><div class="line">    fp_output.close()</div></pre></td></tr></table></figure>
+
+<p>原文本<br><img src="/img/1.png" alt="text"><br>分词处理后<br><img src="/img/2.png" alt="text-seg"></p>
+<h2 id="统计一元、二元词频">统计一元、二元词频</h2>
+<p>预处理时将每一行处理为这样的格式<code>&lt;li&gt;我是一行字&lt;/li&gt;</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">scan</span><span class="params">(self, lines)</span>:</span></div><div class="line">    <span class="string">'''</span></div><div class="line">    逐行扫描，ngram结果记录到文件中</div><div class="line">    @param    sentence    list{str}</div><div class="line">    @return   none</div><div class="line">    '''</div><div class="line">    words = []</div><div class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> lines:</div><div class="line">        <span class="comment"># 统计n元词频</span></div><div class="line">        words.append(<span class="string">'&lt;li&gt;'</span>)</div><div class="line">        wordlist = [</div><div class="line">            w.encode(CODEC)</div><div class="line">            <span class="keyword">for</span> w <span class="keyword">in</span> list(line.decode(CODEC).split(<span class="string">'/'</span>))</div><div class="line">            <span class="keyword">if</span> len(w.strip())&gt;<span class="number">0</span></div><div class="line">        ]</div><div class="line">        words.extend(wordlist)</div><div class="line">        words.append(<span class="string">'&lt;/li&gt;'</span>)</div><div class="line"></div><div class="line">    self.ngram(words)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">'[ Hashed ]'</span></div><div class="line"></div><div class="line">    <span class="comment">#unigram</span></div><div class="line">    file = open(<span class="string">"freq/word_freq.txt"</span>,<span class="string">"w"</span>)</div><div class="line">    <span class="keyword">for</span> key,value <span class="keyword">in</span> self.unigram.items():</div><div class="line">        file.write(<span class="string">"%s\t%d\n"</span> % (key, value))</div><div class="line">    file.close()</div><div class="line">    <span class="keyword">print</span> <span class="string">'[ Unigram file finish ]'</span></div><div class="line"></div><div class="line">    <span class="comment">#bigram</span></div><div class="line">    file = open(<span class="string">"freq/bigram_freq.txt"</span>,<span class="string">"w"</span>)</div><div class="line">    <span class="keyword">for</span> key,value <span class="keyword">in</span> self.bigram.items():</div><div class="line">        file.write(<span class="string">"%s\t%d\n"</span> % (key, value))</div><div class="line">    file.close()</div><div class="line">    <span class="keyword">print</span> <span class="string">'[ Bigram file finish ]'</span></div></pre></td></tr></table></figure>
+
+<p>其中统计ngram的过程如下<br>统计词频时要把词和<code>&lt;li&gt;</code>频数都加入统计<br>这样即可得到一个词在句首的概率，可以表示为：<code>P(词|&lt;li&gt;)</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">ngram</span><span class="params">(self, words)</span>:</span></div><div class="line">    <span class="string">'''</span></div><div class="line">    统计ngram</div><div class="line">    @param    words       list{str}</div><div class="line">    @return   none</div><div class="line">    '''</div><div class="line">    partten = <span class="string">ur'([\u4e00-\u9fa5]|&lt;li&gt;|&lt;/li&gt;)+'</span></div><div class="line">    <span class="comment"># unigram</span></div><div class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,len(words)):</div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> re.search(partten, words[i].decode(CODEC)):</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        key = words[i]</div><div class="line">        <span class="keyword">if</span> key <span class="keyword">not</span> <span class="keyword">in</span> self.unigram:</div><div class="line">            self.unigram[key] = <span class="number">0</span></div><div class="line">        self.unigram[key] += <span class="number">1</span></div><div class="line"></div><div class="line">    <span class="comment"># bigram</span></div><div class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,len(words)):</div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> re.search(partten, words[i].decode(CODEC)):</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> re.search(partten, words[i-<span class="number">1</span>].decode(CODEC)):</div><div class="line">            <span class="keyword">continue</span></div><div class="line"></div><div class="line">        key = words[i] + <span class="string">'|'</span> + words[i-<span class="number">1</span>]</div><div class="line">        <span class="keyword">if</span> key <span class="keyword">not</span> <span class="keyword">in</span> self.bigram:</div><div class="line">            self.bigram[key] = <span class="number">0</span></div><div class="line">        self.bigram[key] += <span class="number">1</span></div></pre></td></tr></table></figure>
+
+<h2 id="获得代码">获得代码</h2>
+<p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/python/">python</a>►<a class="article-category-link" href="/categories/python/NLP/">NLP</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/python/">python</a><a href="/tags/NLP/">NLP</a><a href="/tags/ngram/">ngram</a><a href="/tags/split/">split</a>
+  </div>
+
+</div>
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2014/12/11/python-simple-chinese-input-method-01/" data-title="python实现简易中文输入法（一）：分词、词频统计 | Songboyu&#39;s Blog" data-tsina="3178396551" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2014/12/12/python-simple-chinese-input-method-02/" title="python实现简易中文输入法（二）：加载语言模型">
+  <strong>上一篇：</strong><br/>
+  <span>
+  python实现简易中文输入法（二）：加载语言模型</span>
+</a>
+</div>
+
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#分词"><span class="toc-number">1.</span> <span class="toc-text">分词</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#统计一元、二元词频"><span class="toc-number">2.</span> <span class="toc-text">统计一元、二元词频</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#获得代码"><span class="toc-number">3.</span> <span class="toc-text">获得代码</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+			<li><a href="/categories/python/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/categories/python/" title="python">python<sup>4</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/tags/python/" title="python">python<sup>4</sup></a></li>
+		
+			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
+		
+			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+		
+			<li><a href="/tags/pinyin/" title="pinyin">pinyin<sup>2</sup></a></li>
+		
+			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
+		
+			<li><a href="/tags/viterbi/" title="viterbi">viterbi<sup>1</sup></a></li>
+		
+			<li><a href="/tags/model/" title="model">model<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">Weibo</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=3178396551&verifier=82b1b67f&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Songboyu in Harbin China.  <br/>
+			I&#39;ll share my learning experience with you at this blog.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/songboyu" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/songboyu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:soongboyu@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Pacman">Jacman</a> © 2014 
+		
+		<a href="http://yoursite.com/about" target="_blank" title="Songboyu">Songboyu</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"songboyu"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2fd5b3893f5e8ba3ca7901110ec5446a' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+  </body>
+</html>

@@ -1,0 +1,421 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Songboyu&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Songboyu">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="Songboyu&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Songboyu&#39;s Blog" title="Songboyu&#39;s Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Songboyu&#39;s Blog">Songboyu&#39;s Blog</a></h1>
+				<h2 class="blog-motto">生活赋予我们一种巨大而又无限高贵的礼品，这就是青春。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/12/python-simple-chinese-input-method-04/" title="python实现简易中文输入法（四）：拼音流切分" itemprop="url">python实现简易中文输入法（四）：拼音流切分</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="http://yoursite.com/about" title="Songboyu" target="_blank" itemprop="author">Songboyu</a>
+		
+  <p class="article-time">
+    <time datetime="2014-12-11T17:29:35.000Z" itemprop="datePublished"> Published Dec 12 2014</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <ul>
+<li>前一博客：将拼音序列如<code>[&#39;ce&#39;,&#39;shi&#39;,&#39;zhong&#39;,&#39;wen&#39;,&#39;shu&#39;,&#39;ru&#39;,&#39;fa&#39;]</code>转为汉字串,</li>
+<li>本篇博客：如何将<code>ceshizhongwenshurufa</code>这样的拼音流切分为以上形式。</li>
+</ul>
+<h2 id="建立拼音Tire树">建立拼音Tire树</h2>
+<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-trie.png" alt="拼音Tire树"></p>
+<ul>
+<li>在音节树中, 根结点的儿子为所有的可作为拼音开头的字母。</li>
+<li>再有这些字母生出合法的音节, 其中灰色的节点表示不可终结。</li>
+<li>通过对树的访问很方便地判断哪些是合法拼音, 哪些是合法拼音的一部分。</li>
+<li>首先需要一个所有有效拼音的列表 <a href="https://raw.githubusercontent.com/songboyu/NLP-test/master/pinyin/pinyin_list.txt" target="_blank" rel="external">pinyin_list.txt</a><br>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/12/12/python-simple-chinese-input-method-04/#more">Read More</a>
+          
+       </p>
+    </div>
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/12/python-simple-chinese-input-method-03/" title="python实现简易中文输入法（三）：拼音序列转为汉字串" itemprop="url">python实现简易中文输入法（三）：拼音序列转为汉字串</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="http://yoursite.com/about" title="Songboyu" target="_blank" itemprop="author">Songboyu</a>
+		
+  <p class="article-time">
+    <time datetime="2014-12-11T17:15:42.000Z" itemprop="datePublished"> Published Dec 12 2014</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h2 id="建立词网格（有向图）">建立词网格（有向图）</h2>
+<p>有向图中每一个节点的结构如下所示：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">GraphNode</span><span class="params">(object)</span>:</span></div><div class="line">  <span class="string">"""有向图节点"""</span></div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, word, emission)</span>:</span></div><div class="line">    <span class="comment"># 当前节点所代表的汉字（即状态）</span></div><div class="line">    self.word = word</div><div class="line">    <span class="comment"># 当前状态发射拼音的发射概率</span></div><div class="line">    self.emission = emission</div><div class="line">    <span class="comment"># 最优路径时，从起点到该节点的最高分</span></div><div class="line">    self.max_score = <span class="number">0.0</span></div><div class="line">    <span class="comment"># 最优路径时，该节点的下一个节点，用来输出路径的时候使用</span></div><div class="line">    self.next_node = <span class="keyword">None</span></div></pre></td></tr></table></figure>
+
+<p>建立如下结构的词网格</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">ce      [册 测 测试 侧室 侧视 ... ]</div><div class="line">shi     [是 时 视频 食品 ...]</div><div class="line">pin     [拼 品 频 拼音  ...]</div><div class="line">yin     [银 音 因数 引述 ...]</div><div class="line">shu     [输入 输入法 树 输 书 ...]</div><div class="line">ru      [入 如 汝 入法 如法...]</div><div class="line">fa      [法 发 罚 伐 ...]</div></pre></td></tr></table></figure>
+
+<p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/12/12/python-simple-chinese-input-method-03/#more">Read More</a>
+          
+       </p>
+    </div>
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/12/python-simple-chinese-input-method-02/" title="python实现简易中文输入法（二）：加载语言模型" itemprop="url">python实现简易中文输入法（二）：加载语言模型</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="http://yoursite.com/about" title="Songboyu" target="_blank" itemprop="author">Songboyu</a>
+		
+  <p class="article-time">
+    <time datetime="2014-12-11T16:38:57.000Z" itemprop="datePublished"> Published Dec 12 2014</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>分词和统计词频之后便是如何将数据模型加载到内存中</p>
+<p>使用的词典文件结构：<br><img src="/img/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/12/12/python-simple-chinese-input-method-02/#more">Read More</a>
+          
+       </p>
+    </div>
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/11/python-simple-chinese-input-method-01/" title="python实现简易中文输入法（一）：分词、词频统计" itemprop="url">python实现简易中文输入法（一）：分词、词频统计</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="http://yoursite.com/about" title="Songboyu" target="_blank" itemprop="author">Songboyu</a>
+		
+  <p class="article-time">
+    <time datetime="2014-12-11T14:04:25.000Z" itemprop="datePublished"> Published Dec 11 2014</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>做一个NLP的实验当然要从最基本的步骤做起，那就是分词和词频统计</p>
+<h2 id="分词">分词</h2>
+<p>使用简单快速的正向最大匹配分词。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">fwd_mm_seg</span><span class="params">(wordDict, maxLen, str)</span>:</span></div><div class="line">    <span class="string">'''正向最大匹配分词</span></div><div class="line"></div><div class="line">    @param wordDict:    词表</div><div class="line">    @param maxLen:      词最大长度（自定义）</div><div class="line">    @param str:         待分词的字串</div><div class="line">    @return:            分词序列（List）</div><div class="line">    '''</div><div class="line">    wordList = []</div><div class="line">    segStr = str</div><div class="line">    segStrLen = len(segStr)</div><div class="line">    <span class="keyword">while</span> segStrLen &gt; <span class="number">0</span>:</div><div class="line">        <span class="keyword">if</span> segStrLen &gt; maxLen:</div><div class="line">            wordLen = maxLen</div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            wordLen = segStrLen</div><div class="line">        subStr = segStr[<span class="number">0</span>:wordLen]</div><div class="line">        <span class="keyword">while</span> wordLen &gt; <span class="number">1</span>:</div><div class="line">            <span class="keyword">if</span> subStr <span class="keyword">in</span> wordDict:</div><div class="line">                <span class="keyword">break</span></div><div class="line">            <span class="keyword">else</span>:</div><div class="line">                wordLen = wordLen - <span class="number">1</span></div><div class="line">                subStr = subStr[<span class="number">0</span>:wordLen]</div><div class="line">        wordList.append(subStr)</div><div class="line">        segStr = segStr[wordLen:]</div><div class="line">        segStrLen = segStrLen - wordLen</div><div class="line">    <span class="keyword">return</span> wordList</div></pre></td></tr></table></figure>
+
+<p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/12/11/python-simple-chinese-input-method-01/#more">Read More</a>
+          
+       </p>
+    </div>
+    </article>
+
+
+
+
+
+
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+			<li><a href="/categories/python/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/categories/python/" title="python">python<sup>4</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/tags/python/" title="python">python<sup>4</sup></a></li>
+		
+			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
+		
+			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+		
+			<li><a href="/tags/pinyin/" title="pinyin">pinyin<sup>2</sup></a></li>
+		
+			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
+		
+			<li><a href="/tags/viterbi/" title="viterbi">viterbi<sup>1</sup></a></li>
+		
+			<li><a href="/tags/model/" title="model">model<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">Weibo</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=3178396551&verifier=82b1b67f&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Songboyu in Harbin China.  <br/>
+			I&#39;ll share my learning experience with you at this blog.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/songboyu" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/songboyu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:soongboyu@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Pacman">Jacman</a> © 2014 
+		
+		<a href="http://yoursite.com/about" target="_blank" title="Songboyu">Songboyu</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2fd5b3893f5e8ba3ca7901110ec5446a' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+  </body>
+ </html>
