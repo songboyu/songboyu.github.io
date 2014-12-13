@@ -93,7 +93,7 @@
 		</div>
 		
 		<p>分词和统计词频之后便是如何将数据模型加载到内存中</p>
-<p>使用的词典文件结构：<br><img src="/img/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br><a id="more"></a><br><img src="/img/unigram.png" alt="一元词频"><br><img src="/img/bigram.png" alt="二元词频"></p>
+<p>使用的词典文件结构：<br><img src="/img/pinyin-input-method/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br><a id="more"></a><br><img src="/img/pinyin-input-method/unigram.png" alt="一元词频"><br><img src="/img/pinyin-input-method/bigram.png" alt="二元词频"></p>
 <p>下面我们开始加载语言模型。<br>一元和二元词频都放在同一个dict中</p>
 <h2 id="加载一元词频">加载一元词频</h2>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">load_unigram</span><span class="params">(self, filename)</span>:</span></div><div class="line">    f =  open(filename, <span class="string">'r'</span>)</div><div class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> f:</div><div class="line">      key,freq = line.split()</div><div class="line">      self.freq[key] = int(freq)</div><div class="line">      self.unigram_count += <span class="number">1</span></div><div class="line">      self.words_count += int(freq)</div><div class="line">    f.close()</div></pre></td></tr></table></figure>
@@ -113,7 +113,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_init_score</span><span class="params">(self, word)</span>:</span></div><div class="line">    <span class="string">"""获得初始值"""</span></div><div class="line">    <span class="keyword">return</span> self.get_trans_pro(word, <span class="string">'&lt;li&gt;'</span>)</div></pre></td></tr></table></figure>
 
 <h2 id="结语">结语</h2>
-<p>语言模型的存储方式在实际应用中很重要，关系到整个输入法占用空间的大小<br>只是我太懒…就一股脑的全部加载到内存中了，有时间的话值得好好设计一下~<br>下面贴一个通用的存储模型：<br><img src="/img/ngram-storge.png" alt="ngram存储结构"></p>
+<p>语言模型的存储方式在实际应用中很重要，关系到整个输入法占用空间的大小<br>只是我太懒…就一股脑的全部加载到内存中了，有时间的话值得好好设计一下~<br>下面贴一个通用的存储模型：<br><img src="/img/pinyin-input-method/ngram-storge.png" alt="ngram存储结构"></p>
 <h2 id="获得代码">获得代码</h2>
 <p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
   
@@ -192,7 +192,7 @@
 		
 			<li><a href="/categories/python/NLP/" title="NLP">NLP<sup>4</sup></a></li>
 		
-			<li><a href="/categories/python/" title="python">python<sup>4</sup></a></li>
+			<li><a href="/categories/python/" title="python">python<sup>5</sup></a></li>
 		
 		</ul>
 </div>
@@ -203,17 +203,23 @@
 	<p class="asidetitle">Tags</p>
 		<ul class="clearfix">
 		
+			<li><a href="/tags/python/" title="python">python<sup>5</sup></a></li>
+		
 			<li><a href="/tags/NLP/" title="NLP">NLP<sup>4</sup></a></li>
 		
-			<li><a href="/tags/python/" title="python">python<sup>4</sup></a></li>
-		
-			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
-		
-			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
 		
 			<li><a href="/tags/pinyin/" title="pinyin">pinyin<sup>2</sup></a></li>
 		
-			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
+			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+		
+			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
+		
+			<li><a href="/tags/firefox/" title="firefox">firefox<sup>1</sup></a></li>
+		
+			<li><a href="/tags/url/" title="url">url<sup>1</sup></a></li>
+		
+			<li><a href="/tags/dbank/" title="dbank">dbank<sup>1</sup></a></li>
 		
 			<li><a href="/tags/viterbi/" title="viterbi">viterbi<sup>1</sup></a></li>
 		

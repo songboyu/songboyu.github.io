@@ -1,0 +1,489 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Firefox调试实战----解析华为网盘内容下载链接 | Songboyu&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Songboyu">
+    
+    <meta name="description" content="调试工具：firefox浏览器语言：python
+任务详情：
+对华为网盘下载页解析，获得最终可下载链接。">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="Songboyu&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Songboyu&#39;s Blog" title="Songboyu&#39;s Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Songboyu&#39;s Blog">Songboyu&#39;s Blog</a></h1>
+				<h2 class="blog-motto">生活赋予我们一种巨大而又无限高贵的礼品，这就是青春。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/13/get-dbank-download-url/" title="Firefox调试实战----解析华为网盘内容下载链接" itemprop="url">Firefox调试实战----解析华为网盘内容下载链接</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="http://yoursite.com/about" title="Songboyu" target="_blank" itemprop="author">Songboyu</a>
+		
+  <p class="article-time">
+    <time datetime="2014-12-13T10:22:42.000Z" itemprop="datePublished"> Published Dec 13 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#任务详情："><span class="toc-number">1.</span> <span class="toc-text">任务详情：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#任务实现"><span class="toc-number">2.</span> <span class="toc-text">任务实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#找到下载地址解密函数"><span class="toc-number">2.1.</span> <span class="toc-text">找到下载地址解密函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#解析下载地址是如何进行解密的"><span class="toc-number">2.2.</span> <span class="toc-text">解析下载地址是如何进行解密的</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#子函数b"><span class="toc-number">2.2.1.</span> <span class="toc-text">子函数b</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#子函数c"><span class="toc-number">2.2.2.</span> <span class="toc-text">子函数c</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#测试"><span class="toc-number">3.</span> <span class="toc-text">测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#获得代码"><span class="toc-number">4.</span> <span class="toc-text">获得代码</span></a></li></ol>
+		
+		</div>
+		
+		<p>调试工具：firefox浏览器<br>语言：python</p>
+<h2 id="任务详情：">任务详情：</h2>
+<p>对华为<a href="http://dl.vmall.com/c0xn8jav5v" target="_blank" rel="external">网盘下载页</a>解析，获得最终可下载链接。<br><img src="/img/dbank/1.png" alt="下载页详情"><br><a id="more"></a></p>
+<h2 id="任务实现">任务实现</h2>
+<h3 id="找到下载地址解密函数">找到下载地址解密函数</h3>
+<p>按<code>F12</code>进入firefox的控制台</p>
+<ul>
+<li>通过对下载按钮<img src="/img/dbank/2.png" alt="">审查元素，发现执行了<code>dbank.securelink.downloadfile(this)</code>这样一段js代码，<br><img src="/img/dbank/3.png" alt=""></li>
+<li>进入调试器</li>
+<li>在右侧搜索框<img src="/img/dbank/5.png" alt="">中搜索<code>@downloadfile</code>找到函数体，</li>
+<li>点击左下角大括号图标<img src="/img/dbank/6.png" alt="">格式化代码</li>
+<li>函数很简单，前几个判断都<code>return false</code>，在<code>downloadfile</code>函数中找到了真正有用的一句<br><img src="/img/dbank/7.png" alt="downloadfile函数"></li>
+<li>搜索<code>@download_dbankplugin</code>进入该函数，很难判断进入了哪个分支</li>
+<li>在第一个分支前添加断点，点击下载链接，果然停在了这~<br><img src="/img/dbank/8.png" alt=""><br>首先了解一下firebug的调试工具：<br>恢复<code>F8</code>：<img src="/img/dbank/9.png" alt=""><br>跨越<code>F10</code>：<img src="/img/dbank/10.png" alt=""><br>步进<code>F11</code>：<img src="/img/dbank/11.png" alt=""><br>步出<code>Shift</code>+<code>F11</code>：<img src="/img/dbank/12.png" alt=""></li>
+<li>几次步进步出之后发现进入了<code>download_dbankcommon</code>函数<br>注意：如果用步进，<code>jquery</code>代码也会检查…，所有遇到<code>jquery</code>语法时直接跨越就行了<br>经过在<code>download_dbankcommon</code>函数几次的步进步出，确定进入了<code>installPluginconfig</code>函数<br><img src="/img/dbank/13.png" alt=""></li>
+<li>经过在这个函数中艰苦的添加断点、步进步出、跨越确定进入了<code>vercode_success</code>函数<br>并终于发现了<code>decrypt</code>（解密）字样<br><img src="/img/dbank/14.png" alt=""><br>从以上代码可以看出，对<code>decrypt</code>函数返回值简单处理后，进行了<code>location.href = g</code>操作<br>可以确定，<code>g</code>就是下载地址！！</li>
+</ul>
+<h3 id="解析下载地址是如何进行解密的">解析下载地址是如何进行解密的</h3>
+<ul>
+<li>抱着必胜的信念，我们步进<code>decrypt</code>函数<br><img src="/img/dbank/15.png" alt=""><br>代码很清晰也很简单，先写下来：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> base64</div><div class="line"><span class="keyword">import</span> md5</div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">decrypt</span><span class="params">(g, e)</span>:</span></div><div class="line">    g = base64.decodestring(g)</div><div class="line">    <span class="keyword">if</span> e[:<span class="number">2</span>] == <span class="string">'ea'</span>:</div><div class="line">        d = g</div><div class="line">    <span class="keyword">elif</span> e[:<span class="number">2</span>] == <span class="string">'eb'</span>:</div><div class="line">        d = fuck_b(g, c(e, e))</div><div class="line">    <span class="keyword">elif</span> e[:<span class="number">2</span>] == <span class="string">'ed'</span>:</div><div class="line">        d = fuck_b(g, md5.md5(e).hexdigest())</div><div class="line">    <span class="keyword">else</span>:</div><div class="line">        d = g</div><div class="line">    <span class="keyword">return</span> d</div></pre></td></tr></table></figure>
+
+<p>首要任务就是拿到<code>g</code>,<code>e</code>，查看变量<br><img src="/img/dbank/16.png" alt=""><br>从代码和上图可以知道<code>g</code>是一个base64编码过的串，<code>e</code>未知<br>查看代码，从网页源代码中找到了这两个值，大致可以确定就是<code>g</code>和<code>e</code><br><img src="/img/dbank/18.png" alt=""><br><img src="/img/dbank/17.png" alt=""></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> requests</div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">dbank_final_url</span><span class="params">(url)</span>:</span></div><div class="line">    resp = requests.get(url)</div><div class="line">    html = resp.content</div><div class="line">    g = re.findall(<span class="string">r'"downloadurl":"(.*?)"'</span>, html)[<span class="number">0</span>]</div><div class="line">    e = re.findall(<span class="string">r'"encryKey":"(.*?)"'</span>, html)[<span class="number">0</span>]</div><div class="line">    <span class="keyword">return</span> decrypt(g, e)</div></pre></td></tr></table></figure>
+
+<ul>
+<li>拿到<code>decrypt</code>函数的参数后分析这段代码，发现它调用了两个函数分别是<code>c</code>和<code>b</code></li>
+</ul>
+<h4 id="子函数b">子函数b</h4>
+<p>逐步步进，由于<code>e</code>的值是<code>ed43487215</code>以’ed’开头，所以进入了<code>b</code>函数<br><img src="/img/dbank/19.png" alt=""><br>换成python实现</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">fuck_b</span><span class="params">(d, e)</span>:</span></div><div class="line">    k = len(e)</div><div class="line">    f = len(d)</div><div class="line">    g = <span class="string">''</span></div><div class="line">    h = <span class="number">0</span></div><div class="line">    <span class="keyword">while</span> h &lt; f:</div><div class="line">        j = ord(d[h]) ^ ord(e[h%k])</div><div class="line">        g += chr(j)</div><div class="line">        h += <span class="number">1</span></div><div class="line">    <span class="keyword">return</span> g</div></pre></td></tr></table></figure>
+
+<h4 id="子函数c">子函数c</h4>
+<ul>
+<li><code>b</code>函数找到了，那么<code>c</code>函数怎么办呢？<br>Firebug可以在内部调试中修改变量的值，从而改变js代码的执行。<br>我们可以在<code>switch(f)</code>执行之前设置断点<br><img src="/img/dbank/21.png" alt=""><br>然后刷新页面，重新点击下载链接，在调试器右侧变量处修改<code>e</code>的值为<code>eb24802980</code>回车<br><img src="/img/dbank/22.png" alt=""><br>这样我们就顺利的进入了<code>c</code>函数<br><img src="/img/dbank/20.png" alt=""><br>换成python实现</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">c</span><span class="params">(h, l)</span>:</span></div><div class="line">    k = range(<span class="number">256</span>)</div><div class="line">    e = <span class="number">0</span></div><div class="line">    g = <span class="string">''</span></div><div class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> range(<span class="number">256</span>):</div><div class="line">        e = (e + k[f] + ord(h[f%len(h)])) % <span class="number">256</span></div><div class="line">        d = k[f]</div><div class="line">        k[f] = k[e]</div><div class="line">        k[e] = d</div><div class="line">    f = <span class="number">0</span></div><div class="line">    e = <span class="number">0</span></div><div class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> range(len(l)):</div><div class="line">        f = (f + <span class="number">1</span>) % <span class="number">256</span></div><div class="line">        e = (e + k[f]) % <span class="number">256</span></div><div class="line">        d = k[f]</div><div class="line">        k[f] = k[e]</div><div class="line">        k[e] = d</div><div class="line">        g += chr(ord(l[m]) ^ k[(k[f] + k[e]) % <span class="number">256</span>])</div><div class="line">    <span class="keyword">return</span> g</div></pre></td></tr></table></figure>
+
+<h2 id="测试">测试</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">print</span> dbank_final_url(<span class="string">'http://dl.vmall.com/c0xn8jav5v'</span>)</div></pre></td></tr></table></figure>
+
+<p><img src="/img/dbank/23.png" alt=""><br><a href="http://dl.vmall.com/download/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90C%2B%2B%E6%8F%8F%E8%BF%B0%E7%AC%AC%E4%B8%89%E7%89%88%E4%B8%AD%E6%96%87.pdf?f=c0xn8jav5v&amp;i=1&amp;h=1418474334&amp;v=2431c82b&amp;u=cc769ee7&amp;ip=222.32.128.9&amp;p=65&amp;lpid=&amp;tc=1&amp;auid=&amp;ls=" target="_blank" rel="external">测试结果链接</a><br>（直接点击会调转到错误页，右键复制链接地址然后在粘到浏览器就可以下载，谁能告诉我这是为什么…）</p>
+<h2 id="获得代码">获得代码</h2>
+<p><a href="/dbank.py">本例代码地址</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/python/">python</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/dbank/">dbank</a><a href="/tags/python/">python</a><a href="/tags/url/">url</a><a href="/tags/firefox/">firefox</a>
+  </div>
+
+</div>
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://yoursite.com/2014/12/13/get-dbank-download-url/" data-title="Firefox调试实战----解析华为网盘内容下载链接 | Songboyu&#39;s Blog" data-tsina="3178396551" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2014/12/12/python-simple-chinese-input-method-04/"  title="python实现简易中文输入法（四）：拼音流切分">
+ <strong>下一篇：</strong><br/> 
+ <span>python实现简易中文输入法（四）：拼音流切分
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#任务详情："><span class="toc-number">1.</span> <span class="toc-text">任务详情：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#任务实现"><span class="toc-number">2.</span> <span class="toc-text">任务实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#找到下载地址解密函数"><span class="toc-number">2.1.</span> <span class="toc-text">找到下载地址解密函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#解析下载地址是如何进行解密的"><span class="toc-number">2.2.</span> <span class="toc-text">解析下载地址是如何进行解密的</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#子函数b"><span class="toc-number">2.2.1.</span> <span class="toc-text">子函数b</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#子函数c"><span class="toc-number">2.2.2.</span> <span class="toc-text">子函数c</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#测试"><span class="toc-number">3.</span> <span class="toc-text">测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#获得代码"><span class="toc-number">4.</span> <span class="toc-text">获得代码</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+			<li><a href="/categories/python/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/categories/python/" title="python">python<sup>5</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/python/" title="python">python<sup>5</sup></a></li>
+		
+			<li><a href="/tags/NLP/" title="NLP">NLP<sup>4</sup></a></li>
+		
+			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
+		
+			<li><a href="/tags/pinyin/" title="pinyin">pinyin<sup>2</sup></a></li>
+		
+			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+		
+			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
+		
+			<li><a href="/tags/firefox/" title="firefox">firefox<sup>1</sup></a></li>
+		
+			<li><a href="/tags/url/" title="url">url<sup>1</sup></a></li>
+		
+			<li><a href="/tags/dbank/" title="dbank">dbank<sup>1</sup></a></li>
+		
+			<li><a href="/tags/viterbi/" title="viterbi">viterbi<sup>1</sup></a></li>
+		
+			<li><a href="/tags/model/" title="model">model<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">Weibo</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=3178396551&verifier=82b1b67f&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Songboyu in Harbin China.  <br/>
+			I&#39;ll share my learning experience with you at this blog.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/songboyu" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/songboyu" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:soongboyu@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Pacman">Jacman</a> © 2014 
+		
+		<a href="http://yoursite.com/about" target="_blank" title="Songboyu">Songboyu</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"songboyu"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F2fd5b3893f5e8ba3ca7901110ec5446a' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+  </body>
+</html>

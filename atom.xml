@@ -4,7 +4,7 @@
   <subtitle><![CDATA[生活赋予我们一种巨大而又无限高贵的礼品，这就是青春。]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://yoursite.com/"/>
-  <updated>2014-12-12T12:41:07.337Z</updated>
+  <updated>2014-12-13T13:01:53.731Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,17 +15,88 @@
   <generator uri="http://zespia.tw/hexo/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[Firefox调试实战----解析华为网盘内容下载链接]]></title>
+    <link href="http://yoursite.com/2014/12/13/get-dbank-download-url/"/>
+    <id>http://yoursite.com/2014/12/13/get-dbank-download-url/</id>
+    <published>2014-12-13T10:22:42.000Z</published>
+    <updated>2014-12-13T13:01:42.000Z</updated>
+    <content type="html"><![CDATA[<p>调试工具：firefox浏览器<br>语言：python</p>
+<h2 id="任务详情：">任务详情：</h2>
+<p>对华为<a href="http://dl.vmall.com/c0xn8jav5v" target="_blank" rel="external">网盘下载页</a>解析，获得最终可下载链接。<br><img src="/img/dbank/1.png" alt="下载页详情"><br><a id="more"></a></p>
+<h2 id="任务实现">任务实现</h2>
+<h3 id="找到下载地址解密函数">找到下载地址解密函数</h3>
+<p>按<code>F12</code>进入firefox的控制台</p>
+<ul>
+<li>通过对下载按钮<img src="/img/dbank/2.png" alt="">审查元素，发现执行了<code>dbank.securelink.downloadfile(this)</code>这样一段js代码，<br><img src="/img/dbank/3.png" alt=""></li>
+<li>进入调试器</li>
+<li>在右侧搜索框<img src="/img/dbank/5.png" alt="">中搜索<code>@downloadfile</code>找到函数体，</li>
+<li>点击左下角大括号图标<img src="/img/dbank/6.png" alt="">格式化代码</li>
+<li>函数很简单，前几个判断都<code>return false</code>，在<code>downloadfile</code>函数中找到了真正有用的一句<br><img src="/img/dbank/7.png" alt="downloadfile函数"></li>
+<li>搜索<code>@download_dbankplugin</code>进入该函数，很难判断进入了哪个分支</li>
+<li>在第一个分支前添加断点，点击下载链接，果然停在了这~<br><img src="/img/dbank/8.png" alt=""><br>首先了解一下firebug的调试工具：<br>恢复<code>F8</code>：<img src="/img/dbank/9.png" alt=""><br>跨越<code>F10</code>：<img src="/img/dbank/10.png" alt=""><br>步进<code>F11</code>：<img src="/img/dbank/11.png" alt=""><br>步出<code>Shift</code>+<code>F11</code>：<img src="/img/dbank/12.png" alt=""></li>
+<li>几次步进步出之后发现进入了<code>download_dbankcommon</code>函数<br>注意：如果用步进，<code>jquery</code>代码也会检查…，所有遇到<code>jquery</code>语法时直接跨越就行了<br>经过在<code>download_dbankcommon</code>函数几次的步进步出，确定进入了<code>installPluginconfig</code>函数<br><img src="/img/dbank/13.png" alt=""></li>
+<li>经过在这个函数中艰苦的添加断点、步进步出、跨越确定进入了<code>vercode_success</code>函数<br>并终于发现了<code>decrypt</code>（解密）字样<br><img src="/img/dbank/14.png" alt=""><br>从以上代码可以看出，对<code>decrypt</code>函数返回值简单处理后，进行了<code>location.href = g</code>操作<br>可以确定，<code>g</code>就是下载地址！！</li>
+</ul>
+<h3 id="解析下载地址是如何进行解密的">解析下载地址是如何进行解密的</h3>
+<ul>
+<li>抱着必胜的信念，我们步进<code>decrypt</code>函数<br><img src="/img/dbank/15.png" alt=""><br>代码很清晰也很简单，先写下来：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> base64</div><div class="line"><span class="keyword">import</span> md5</div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">decrypt</span><span class="params">(g, e)</span>:</span></div><div class="line">    g = base64.decodestring(g)</div><div class="line">    <span class="keyword">if</span> e[:<span class="number">2</span>] == <span class="string">'ea'</span>:</div><div class="line">        d = g</div><div class="line">    <span class="keyword">elif</span> e[:<span class="number">2</span>] == <span class="string">'eb'</span>:</div><div class="line">        d = fuck_b(g, c(e, e))</div><div class="line">    <span class="keyword">elif</span> e[:<span class="number">2</span>] == <span class="string">'ed'</span>:</div><div class="line">        d = fuck_b(g, md5.md5(e).hexdigest())</div><div class="line">    <span class="keyword">else</span>:</div><div class="line">        d = g</div><div class="line">    <span class="keyword">return</span> d</div></pre></td></tr></table></figure>
+
+<p>首要任务就是拿到<code>g</code>,<code>e</code>，查看变量<br><img src="/img/dbank/16.png" alt=""><br>从代码和上图可以知道<code>g</code>是一个base64编码过的串，<code>e</code>未知<br>查看代码，从网页源代码中找到了这两个值，大致可以确定就是<code>g</code>和<code>e</code><br><img src="/img/dbank/18.png" alt=""><br><img src="/img/dbank/17.png" alt=""></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> requests</div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">dbank_final_url</span><span class="params">(url)</span>:</span></div><div class="line">    resp = requests.get(url)</div><div class="line">    html = resp.content</div><div class="line">    g = re.findall(<span class="string">r'"downloadurl":"(.*?)"'</span>, html)[<span class="number">0</span>]</div><div class="line">    e = re.findall(<span class="string">r'"encryKey":"(.*?)"'</span>, html)[<span class="number">0</span>]</div><div class="line">    <span class="keyword">return</span> decrypt(g, e)</div></pre></td></tr></table></figure>
+
+<ul>
+<li>拿到<code>decrypt</code>函数的参数后分析这段代码，发现它调用了两个函数分别是<code>c</code>和<code>b</code></li>
+</ul>
+<h4 id="子函数b">子函数b</h4>
+<p>逐步步进，由于<code>e</code>的值是<code>ed43487215</code>以’ed’开头，所以进入了<code>b</code>函数<br><img src="/img/dbank/19.png" alt=""><br>换成python实现</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">fuck_b</span><span class="params">(d, e)</span>:</span></div><div class="line">    k = len(e)</div><div class="line">    f = len(d)</div><div class="line">    g = <span class="string">''</span></div><div class="line">    h = <span class="number">0</span></div><div class="line">    <span class="keyword">while</span> h &lt; f:</div><div class="line">        j = ord(d[h]) ^ ord(e[h%k])</div><div class="line">        g += chr(j)</div><div class="line">        h += <span class="number">1</span></div><div class="line">    <span class="keyword">return</span> g</div></pre></td></tr></table></figure>
+
+<h4 id="子函数c">子函数c</h4>
+<ul>
+<li><code>b</code>函数找到了，那么<code>c</code>函数怎么办呢？<br>Firebug可以在内部调试中修改变量的值，从而改变js代码的执行。<br>我们可以在<code>switch(f)</code>执行之前设置断点<br><img src="/img/dbank/21.png" alt=""><br>然后刷新页面，重新点击下载链接，在调试器右侧变量处修改<code>e</code>的值为<code>eb24802980</code>回车<br><img src="/img/dbank/22.png" alt=""><br>这样我们就顺利的进入了<code>c</code>函数<br><img src="/img/dbank/20.png" alt=""><br>换成python实现</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">c</span><span class="params">(h, l)</span>:</span></div><div class="line">    k = range(<span class="number">256</span>)</div><div class="line">    e = <span class="number">0</span></div><div class="line">    g = <span class="string">''</span></div><div class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> range(<span class="number">256</span>):</div><div class="line">        e = (e + k[f] + ord(h[f%len(h)])) % <span class="number">256</span></div><div class="line">        d = k[f]</div><div class="line">        k[f] = k[e]</div><div class="line">        k[e] = d</div><div class="line">    f = <span class="number">0</span></div><div class="line">    e = <span class="number">0</span></div><div class="line">    <span class="keyword">for</span> m <span class="keyword">in</span> range(len(l)):</div><div class="line">        f = (f + <span class="number">1</span>) % <span class="number">256</span></div><div class="line">        e = (e + k[f]) % <span class="number">256</span></div><div class="line">        d = k[f]</div><div class="line">        k[f] = k[e]</div><div class="line">        k[e] = d</div><div class="line">        g += chr(ord(l[m]) ^ k[(k[f] + k[e]) % <span class="number">256</span>])</div><div class="line">    <span class="keyword">return</span> g</div></pre></td></tr></table></figure>
+
+<h2 id="测试">测试</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">print</span> dbank_final_url(<span class="string">'http://dl.vmall.com/c0xn8jav5v'</span>)</div></pre></td></tr></table></figure>
+
+<p><img src="/img/dbank/23.png" alt=""><br><a href="http://dl.vmall.com/download/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90C%2B%2B%E6%8F%8F%E8%BF%B0%E7%AC%AC%E4%B8%89%E7%89%88%E4%B8%AD%E6%96%87.pdf?f=c0xn8jav5v&amp;i=1&amp;h=1418474334&amp;v=2431c82b&amp;u=cc769ee7&amp;ip=222.32.128.9&amp;p=65&amp;lpid=&amp;tc=1&amp;auid=&amp;ls=" target="_blank" rel="external">测试结果链接</a><br>（直接点击会调转到错误页，右键复制链接地址然后在粘到浏览器就可以下载，谁能告诉我这是为什么…）</p>
+<h2 id="获得代码">获得代码</h2>
+<p><a href="/dbank.py">本例代码地址</a></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>调试工具：firefox浏览器<br>语言：python</p>
+<h2 id="任务详情：">任务详情：</h2>
+<p>对华为<a href="http://dl.vmall.com/c0xn8jav5v" target="_blank" rel="external">网盘下载页</a>解析，获得最终可下载链接。<br><img src="/img/dbank/1.png" alt="下载页详情"><br>]]>
+    
+    </summary>
+    
+      <category term="dbank" scheme="http://yoursite.com/tags/dbank/"/>
+    
+      <category term="python" scheme="http://yoursite.com/tags/python/"/>
+    
+      <category term="url" scheme="http://yoursite.com/tags/url/"/>
+    
+      <category term="firefox" scheme="http://yoursite.com/tags/firefox/"/>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[python实现简易中文输入法（四）：拼音流切分]]></title>
     <link href="http://yoursite.com/2014/12/12/python-simple-chinese-input-method-04/"/>
     <id>http://yoursite.com/2014/12/12/python-simple-chinese-input-method-04/</id>
     <published>2014-12-11T17:29:35.000Z</published>
-    <updated>2014-12-12T11:31:50.000Z</updated>
+    <updated>2014-12-13T11:03:27.000Z</updated>
     <content type="html"><![CDATA[<ul>
 <li>前一博客：将拼音序列如<code>[&#39;ce&#39;,&#39;shi&#39;,&#39;zhong&#39;,&#39;wen&#39;,&#39;shu&#39;,&#39;ru&#39;,&#39;fa&#39;]</code>转为汉字串,</li>
 <li>本篇博客：如何将<code>ceshizhongwenshurufa</code>这样的拼音流切分为以上形式。</li>
 </ul>
 <h2 id="建立拼音Tire树">建立拼音Tire树</h2>
-<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-trie.png" alt="拼音Tire树"></p>
+<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-input-method/pinyin-trie.png" alt="拼音Tire树"></p>
 <ul>
 <li>在音节树中, 根结点的儿子为所有的可作为拼音开头的字母。</li>
 <li>再有这些字母生出合法的音节, 其中灰色的节点表示不可终结。</li>
@@ -49,7 +120,7 @@
 <p>初始化时，读取文件建立Tire树</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, pinyins)</span>:</span></div><div class="line">    self.pinyins = pinyins</div><div class="line">    <span class="comment"># 读入所有有效拼音</span></div><div class="line">    self.tree = Trie()</div><div class="line">    f = open(<span class="string">'pinyin/pinyin_list.txt'</span>)</div><div class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> f:</div><div class="line">        self.tree.insert(line.split()[<span class="number">0</span>])</div><div class="line">    f.close()</div></pre></td></tr></table></figure>
 
-<p>切分的主函数流程<br><img src="/img/pinyin-split.png" alt="切分算法流程"></p>
+<p>切分的主函数流程<br><img src="/img/pinyin-input-method/pinyin-split.png" alt="切分算法流程"></p>
 <ul>
 <li>算法根据汉语拼音的规则, 对用户输入的合法拼音流进行切分。</li>
 <li>为了程序实现上述算法，需要建立以下结构：<ol>
@@ -67,7 +138,7 @@
 <h2 id="测试">测试</h2>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    pinyins = pinyin(<span class="string">'woaizhonghuarenmingongheguo'</span>)</div><div class="line">    <span class="keyword">print</span> pinyins.split()</div></pre></td></tr></table></figure>
 
-<p>测试结果如下：<br><img src="/img/pinyin-result.png" alt="测试结果"></p>
+<p>测试结果如下：<br><img src="/img/pinyin-input-method/pinyin-result.png" alt="测试结果"></p>
 <h2 id="获得代码">获得代码</h2>
 <p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
 ]]></content>
@@ -77,7 +148,7 @@
 <li>本篇博客：如何将<code>ceshizhongwenshurufa</code>这样的拼音流切分为以上形式。</li>
 </ul>
 <h2 id="建立拼音Tire树">建立拼音Tire树</h2>
-<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-trie.png" alt="拼音Tire树"></p>
+<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-input-method/pinyin-trie.png" alt="拼音Tire树"></p>
 <ul>
 <li>在音节树中, 根结点的儿子为所有的可作为拼音开头的字母。</li>
 <li>再有这些字母生出合法的音节, 其中灰色的节点表示不可终结。</li>
@@ -105,7 +176,7 @@
     <link href="http://yoursite.com/2014/12/12/python-simple-chinese-input-method-03/"/>
     <id>http://yoursite.com/2014/12/12/python-simple-chinese-input-method-03/</id>
     <published>2014-12-11T17:15:42.000Z</published>
-    <updated>2014-12-12T11:31:27.000Z</updated>
+    <updated>2014-12-13T11:03:19.000Z</updated>
     <content type="html"><![CDATA[<h2 id="建立词网格（有向图）">建立词网格（有向图）</h2>
 <p>有向图中每一个节点的结构如下所示：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">GraphNode</span><span class="params">(object)</span>:</span></div><div class="line">  <span class="string">"""有向图节点"""</span></div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, word, emission)</span>:</span></div><div class="line">    <span class="comment"># 当前节点所代表的汉字（即状态）</span></div><div class="line">    self.word = word</div><div class="line">    <span class="comment"># 当前状态发射拼音的发射概率</span></div><div class="line">    self.emission = emission</div><div class="line">    <span class="comment"># 最优路径时，从起点到该节点的最高分</span></div><div class="line">    self.max_score = <span class="number">0.0</span></div><div class="line">    <span class="comment"># 最优路径时，该节点的下一个节点，用来输出路径的时候使用</span></div><div class="line">    self.next_node = <span class="keyword">None</span></div></pre></td></tr></table></figure>
@@ -117,7 +188,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Graph</span><span class="params">(object)</span>:</span></div><div class="line">  <span class="string">"""图结构"""</span></div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, pinyins, im)</span>:</span></div><div class="line">    <span class="string">"""根据拼音所对应的所有词汇组合，构造图"""</span></div><div class="line">    self.sequence = []</div><div class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(pinyins)):</div><div class="line">      pys = []</div><div class="line">      current_position = {}</div><div class="line">      <span class="comment"># pys记录以i开头的所有拼音串</span></div><div class="line">      <span class="keyword">for</span> j <span class="keyword">in</span> range(i, len(pinyins)+<span class="number">1</span>):</div><div class="line">        py = <span class="string">'|'</span>.join(pinyins[i:j])</div><div class="line">        <span class="keyword">if</span> py <span class="keyword">in</span> im.lm.emission:</div><div class="line">          pys.append(py)</div><div class="line"></div><div class="line">      <span class="comment"># current_position记录以i开头的所有拼音串，及其对应的词</span></div><div class="line">      <span class="keyword">for</span> py <span class="keyword">in</span> pys:</div><div class="line">        <span class="keyword">for</span> word,emission <span class="keyword">in</span> im.lm.emission[py].items():</div><div class="line">          node = GraphNode(word, emission)</div><div class="line">          current_position[word] = node</div><div class="line"></div><div class="line">      self.sequence.append(current_position)</div></pre></td></tr></table></figure>
 
 <h2 id="查找概率最大路径">查找概率最大路径</h2>
-<p>查找过程如下所示<br><img src="/img/word-graph.png" alt="查找概率最大路径"></p>
+<p>查找过程如下所示<br><img src="/img/pinyin-input-method/word-graph.png" alt="查找概率最大路径"></p>
 <p><code>viterbi</code>开始时，先判断是否路径已在<code>cache</code>中，如果是则不进行计算。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">viterbi</span><span class="params">(self, t, k)</span>:</span></div><div class="line">    <span class="string">'''第 t 个位置出现 k 词的概率</span></div><div class="line"></div><div class="line">    @param t:   pinyin数组下标</div><div class="line">    @param k:   词</div><div class="line">    @return:    最大分值</div><div class="line">    '''</div><div class="line">    <span class="keyword">if</span> self.get_key(t,k) <span class="keyword">in</span> self.viterbi_cache:</div><div class="line">      <span class="keyword">return</span> self.viterbi_cache[self.get_key(t,k)]</div></pre></td></tr></table></figure>
 
@@ -148,7 +219,7 @@
 <h2 id="测试">测试</h2>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> core.InputMethod <span class="keyword">import</span> InputMethod</div><div class="line"><span class="keyword">from</span> pinyin.Pinyin <span class="keyword">import</span> pinyin</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">  im = InputMethod()</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'a'</span>,<span class="string">'li'</span>,<span class="string">'ba'</span>,<span class="string">'ba'</span>,<span class="string">'ji'</span>,<span class="string">'tuan'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'ce'</span>,<span class="string">'shi'</span>,<span class="string">'zhong'</span>,<span class="string">'wen'</span>,<span class="string">'shu'</span>,<span class="string">'ru'</span>,<span class="string">'fa'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'zhong'</span>,<span class="string">'hua'</span>,<span class="string">'ren'</span>,<span class="string">'min'</span>,<span class="string">'gong'</span>,<span class="string">'he'</span>,<span class="string">'guo'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'yi'</span>,<span class="string">'zhi'</span>,<span class="string">'mei'</span>,<span class="string">'li'</span>,<span class="string">'de'</span>,<span class="string">'xiao'</span>,<span class="string">'hua'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'wo'</span>,<span class="string">'ai'</span>,<span class="string">'bei'</span>,<span class="string">'jing'</span>,<span class="string">'tian'</span>,<span class="string">'an'</span>,<span class="string">'men'</span>])</div></pre></td></tr></table></figure>
 
-<p>测试结果如下：<br><img src="/img/main-result.png" alt="测试结果"></p>
+<p>测试结果如下：<br><img src="/img/pinyin-input-method/main-result.png" alt="测试结果"></p>
 <h2 id="获得代码">获得代码</h2>
 <p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
 ]]></content>
@@ -185,9 +256,9 @@
     <link href="http://yoursite.com/2014/12/12/python-simple-chinese-input-method-02/"/>
     <id>http://yoursite.com/2014/12/12/python-simple-chinese-input-method-02/</id>
     <published>2014-12-11T16:38:57.000Z</published>
-    <updated>2014-12-12T11:32:17.000Z</updated>
+    <updated>2014-12-13T11:03:11.000Z</updated>
     <content type="html"><![CDATA[<p>分词和统计词频之后便是如何将数据模型加载到内存中</p>
-<p>使用的词典文件结构：<br><img src="/img/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br><a id="more"></a><br><img src="/img/unigram.png" alt="一元词频"><br><img src="/img/bigram.png" alt="二元词频"></p>
+<p>使用的词典文件结构：<br><img src="/img/pinyin-input-method/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br><a id="more"></a><br><img src="/img/pinyin-input-method/unigram.png" alt="一元词频"><br><img src="/img/pinyin-input-method/bigram.png" alt="二元词频"></p>
 <p>下面我们开始加载语言模型。<br>一元和二元词频都放在同一个dict中</p>
 <h2 id="加载一元词频">加载一元词频</h2>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">load_unigram</span><span class="params">(self, filename)</span>:</span></div><div class="line">    f =  open(filename, <span class="string">'r'</span>)</div><div class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> f:</div><div class="line">      key,freq = line.split()</div><div class="line">      self.freq[key] = int(freq)</div><div class="line">      self.unigram_count += <span class="number">1</span></div><div class="line">      self.words_count += int(freq)</div><div class="line">    f.close()</div></pre></td></tr></table></figure>
@@ -207,13 +278,13 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_init_score</span><span class="params">(self, word)</span>:</span></div><div class="line">    <span class="string">"""获得初始值"""</span></div><div class="line">    <span class="keyword">return</span> self.get_trans_pro(word, <span class="string">'&lt;li&gt;'</span>)</div></pre></td></tr></table></figure>
 
 <h2 id="结语">结语</h2>
-<p>语言模型的存储方式在实际应用中很重要，关系到整个输入法占用空间的大小<br>只是我太懒…就一股脑的全部加载到内存中了，有时间的话值得好好设计一下~<br>下面贴一个通用的存储模型：<br><img src="/img/ngram-storge.png" alt="ngram存储结构"></p>
+<p>语言模型的存储方式在实际应用中很重要，关系到整个输入法占用空间的大小<br>只是我太懒…就一股脑的全部加载到内存中了，有时间的话值得好好设计一下~<br>下面贴一个通用的存储模型：<br><img src="/img/pinyin-input-method/ngram-storge.png" alt="ngram存储结构"></p>
 <h2 id="获得代码">获得代码</h2>
 <p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
 ]]></content>
     <summary type="html">
     <![CDATA[<p>分词和统计词频之后便是如何将数据模型加载到内存中</p>
-<p>使用的词典文件结构：<br><img src="/img/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br>]]>
+<p>使用的词典文件结构：<br><img src="/img/pinyin-input-method/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br>]]>
     
     </summary>
     
@@ -238,7 +309,7 @@
     <link href="http://yoursite.com/2014/12/11/python-simple-chinese-input-method-01/"/>
     <id>http://yoursite.com/2014/12/11/python-simple-chinese-input-method-01/</id>
     <published>2014-12-11T14:04:25.000Z</published>
-    <updated>2014-12-12T11:30:59.000Z</updated>
+    <updated>2014-12-13T11:15:33.000Z</updated>
     <content type="html"><![CDATA[<p>做一个NLP的实验当然要从最基本的步骤做起，那就是分词和词频统计</p>
 <h2 id="分词">分词</h2>
 <p>使用简单快速的正向最大匹配分词。</p>
@@ -252,7 +323,7 @@
 </ol>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line">CODEC = <span class="string">'utf8'</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">file_seg_process</span><span class="params">(filename, method)</span>:</span></div><div class="line">    <span class="string">'''</span></div><div class="line">    @param filename: 文件名</div><div class="line">    @param method:   分词算法 { 0:正向，1:逆向 }</div><div class="line">    '''</div><div class="line">    <span class="comment"># 打开文件</span></div><div class="line">    fp_dict = open(<span class="string">'dict.txt'</span>)</div><div class="line">    fp_input = open(<span class="string">'corpus/'</span>+filename)</div><div class="line">    fp_output = open(<span class="string">'corpus_seg/'</span>+filename, <span class="string">'w'</span>)</div><div class="line">    </div><div class="line">    wordDict = {} </div><div class="line">    <span class="comment"># 读取字典到内存中</span></div><div class="line">    <span class="keyword">for</span> eachWord <span class="keyword">in</span> fp_dict:</div><div class="line">        wordDict[u(eachWord.split()[<span class="number">0</span>].strip(), CODEC)] = <span class="number">1</span></div><div class="line"></div><div class="line">    <span class="comment"># 对input每一行操作</span></div><div class="line">    str = <span class="string">''</span></div><div class="line">    <span class="keyword">for</span> eachLine <span class="keyword">in</span> fp_input:</div><div class="line">        line_out = <span class="string">''</span></div><div class="line">        <span class="comment"># 每一段作为一行输入给分词函数</span></div><div class="line">        sub = strQ2B(u(eachLine.strip(), CODEC))</div><div class="line">        <span class="keyword">if</span> <span class="keyword">not</span> sub.startswith(<span class="string">'  '</span>):</div><div class="line">            str += sub</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        strlen = len(str)</div><div class="line">        <span class="keyword">while</span> strlen &gt; <span class="number">0</span>:</div><div class="line">            <span class="comment"># 英文字符或数字--原文输出</span></div><div class="line">            m = re.match(<span class="string">r'\w+'</span>, str)</div><div class="line">            <span class="keyword">if</span> m <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">                subStr = m.group()</div><div class="line">                line_out += subStr.encode(CODEC)+<span class="string">'/'</span></div><div class="line">                subLen = len(subStr)</div><div class="line">                str = str[subLen:]</div><div class="line">                strlen = strlen - subLen</div><div class="line">                <span class="keyword">continue</span></div><div class="line">            <span class="comment"># 短句结尾标志--输出换行</span></div><div class="line">            <span class="keyword">if</span> str[<span class="number">0</span>:<span class="number">1</span>].encode(CODEC) <span class="keyword">in</span> [<span class="string">','</span>,<span class="string">'。'</span>,<span class="string">'!'</span>,<span class="string">'?'</span>,<span class="string">':'</span>]:</div><div class="line">                subStr = str[<span class="number">0</span>:<span class="number">1</span>]</div><div class="line">                line_out += <span class="string">'\n'</span></div><div class="line">                subLen = len(subStr)</div><div class="line">                str = str[subLen:]</div><div class="line">                strlen = strlen - subLen</div><div class="line">            <span class="comment"># 汉字--分词处理，输出 词/词</span></div><div class="line">            m = re.match(<span class="string">ur'[\u4e00-\u9fa5]+'</span>, str)</div><div class="line">            <span class="keyword">if</span> m <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">                subStr = m.group()</div><div class="line">                <span class="keyword">if</span> method == <span class="number">0</span>:</div><div class="line">                    <span class="comment"># 正向最大匹配</span></div><div class="line">                    wordList = fwd_mm_seg(wordDict, <span class="number">8</span>, subStr)</div><div class="line">                <span class="keyword">else</span>:</div><div class="line">                    <span class="comment"># 逆向最大匹配</span></div><div class="line">                    wordList = bwd_mm_seg(wordDict, <span class="number">8</span>, subStr)</div><div class="line">                line_out += wordList[<span class="number">0</span>].encode(CODEC)+<span class="string">'/'</span></div><div class="line">                <span class="keyword">for</span> eachWord <span class="keyword">in</span> wordList[<span class="number">1</span>:]:</div><div class="line">                    line_out += eachWord.encode(CODEC)+<span class="string">'/'</span></div><div class="line">                subLen = len(subStr)</div><div class="line">                str = str[subLen:]</div><div class="line">                strlen = strlen - subLen</div><div class="line">                <span class="keyword">continue</span></div><div class="line">            <span class="comment"># 其他特殊字符--跳过</span></div><div class="line">            str = str[<span class="number">1</span>:]</div><div class="line">            strlen = strlen - <span class="number">1</span></div><div class="line">        <span class="comment"># 跳过处理后为空行的段落</span></div><div class="line">        <span class="keyword">if</span> len(line_out.strip()) == <span class="number">0</span>:</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        <span class="comment"># 写入文件</span></div><div class="line">        fp_output.write(line_out + <span class="string">'\n'</span>)</div><div class="line">        str = sub</div><div class="line">    <span class="comment"># close file</span></div><div class="line">    fp_input.close()</div><div class="line">    fp_dict.close()</div><div class="line">    fp_output.close()</div></pre></td></tr></table></figure>
 
-<p>原文本<br><img src="/img/1.png" alt="text"><br>分词处理后<br><img src="/img/2.png" alt="text-seg"></p>
+<p>原文本<br><img src="/img/pinyin-input-method/1.png" alt="text"><br>分词处理后<br><img src="/img/pinyin-input-method/2.png" alt="text-seg"></p>
 <h2 id="统计一元、二元词频">统计一元、二元词频</h2>
 <p>预处理时将每一行处理为这样的格式<code>&lt;li&gt;我是一行字&lt;/li&gt;</code></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">scan</span><span class="params">(self, lines)</span>:</span></div><div class="line">    <span class="string">'''</span></div><div class="line">    逐行扫描，ngram结果记录到文件中</div><div class="line">    @param    sentence    list{str}</div><div class="line">    @return   none</div><div class="line">    '''</div><div class="line">    words = []</div><div class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> lines:</div><div class="line">        <span class="comment"># 统计n元词频</span></div><div class="line">        words.append(<span class="string">'&lt;li&gt;'</span>)</div><div class="line">        wordlist = [</div><div class="line">            w.encode(CODEC)</div><div class="line">            <span class="keyword">for</span> w <span class="keyword">in</span> list(line.decode(CODEC).split(<span class="string">'/'</span>))</div><div class="line">            <span class="keyword">if</span> len(w.strip())&gt;<span class="number">0</span></div><div class="line">        ]</div><div class="line">        words.extend(wordlist)</div><div class="line">        words.append(<span class="string">'&lt;/li&gt;'</span>)</div><div class="line"></div><div class="line">    self.ngram(words)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">'[ Hashed ]'</span></div><div class="line"></div><div class="line">    <span class="comment">#unigram</span></div><div class="line">    file = open(<span class="string">"freq/word_freq.txt"</span>,<span class="string">"w"</span>)</div><div class="line">    <span class="keyword">for</span> key,value <span class="keyword">in</span> self.unigram.items():</div><div class="line">        file.write(<span class="string">"%s\t%d\n"</span> % (key, value))</div><div class="line">    file.close()</div><div class="line">    <span class="keyword">print</span> <span class="string">'[ Unigram file finish ]'</span></div><div class="line"></div><div class="line">    <span class="comment">#bigram</span></div><div class="line">    file = open(<span class="string">"freq/bigram_freq.txt"</span>,<span class="string">"w"</span>)</div><div class="line">    <span class="keyword">for</span> key,value <span class="keyword">in</span> self.bigram.items():</div><div class="line">        file.write(<span class="string">"%s\t%d\n"</span> % (key, value))</div><div class="line">    file.close()</div><div class="line">    <span class="keyword">print</span> <span class="string">'[ Bigram file finish ]'</span></div></pre></td></tr></table></figure>

@@ -107,7 +107,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Graph</span><span class="params">(object)</span>:</span></div><div class="line">  <span class="string">"""图结构"""</span></div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, pinyins, im)</span>:</span></div><div class="line">    <span class="string">"""根据拼音所对应的所有词汇组合，构造图"""</span></div><div class="line">    self.sequence = []</div><div class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(pinyins)):</div><div class="line">      pys = []</div><div class="line">      current_position = {}</div><div class="line">      <span class="comment"># pys记录以i开头的所有拼音串</span></div><div class="line">      <span class="keyword">for</span> j <span class="keyword">in</span> range(i, len(pinyins)+<span class="number">1</span>):</div><div class="line">        py = <span class="string">'|'</span>.join(pinyins[i:j])</div><div class="line">        <span class="keyword">if</span> py <span class="keyword">in</span> im.lm.emission:</div><div class="line">          pys.append(py)</div><div class="line"></div><div class="line">      <span class="comment"># current_position记录以i开头的所有拼音串，及其对应的词</span></div><div class="line">      <span class="keyword">for</span> py <span class="keyword">in</span> pys:</div><div class="line">        <span class="keyword">for</span> word,emission <span class="keyword">in</span> im.lm.emission[py].items():</div><div class="line">          node = GraphNode(word, emission)</div><div class="line">          current_position[word] = node</div><div class="line"></div><div class="line">      self.sequence.append(current_position)</div></pre></td></tr></table></figure>
 
 <h2 id="查找概率最大路径">查找概率最大路径</h2>
-<p>查找过程如下所示<br><img src="/img/word-graph.png" alt="查找概率最大路径"></p>
+<p>查找过程如下所示<br><img src="/img/pinyin-input-method/word-graph.png" alt="查找概率最大路径"></p>
 <p><code>viterbi</code>开始时，先判断是否路径已在<code>cache</code>中，如果是则不进行计算。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">viterbi</span><span class="params">(self, t, k)</span>:</span></div><div class="line">    <span class="string">'''第 t 个位置出现 k 词的概率</span></div><div class="line"></div><div class="line">    @param t:   pinyin数组下标</div><div class="line">    @param k:   词</div><div class="line">    @return:    最大分值</div><div class="line">    '''</div><div class="line">    <span class="keyword">if</span> self.get_key(t,k) <span class="keyword">in</span> self.viterbi_cache:</div><div class="line">      <span class="keyword">return</span> self.viterbi_cache[self.get_key(t,k)]</div></pre></td></tr></table></figure>
 
@@ -138,7 +138,7 @@
 <h2 id="测试">测试</h2>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> core.InputMethod <span class="keyword">import</span> InputMethod</div><div class="line"><span class="keyword">from</span> pinyin.Pinyin <span class="keyword">import</span> pinyin</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">  im = InputMethod()</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'a'</span>,<span class="string">'li'</span>,<span class="string">'ba'</span>,<span class="string">'ba'</span>,<span class="string">'ji'</span>,<span class="string">'tuan'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'ce'</span>,<span class="string">'shi'</span>,<span class="string">'zhong'</span>,<span class="string">'wen'</span>,<span class="string">'shu'</span>,<span class="string">'ru'</span>,<span class="string">'fa'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'zhong'</span>,<span class="string">'hua'</span>,<span class="string">'ren'</span>,<span class="string">'min'</span>,<span class="string">'gong'</span>,<span class="string">'he'</span>,<span class="string">'guo'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'yi'</span>,<span class="string">'zhi'</span>,<span class="string">'mei'</span>,<span class="string">'li'</span>,<span class="string">'de'</span>,<span class="string">'xiao'</span>,<span class="string">'hua'</span>])</div><div class="line">  <span class="keyword">print</span> im.translate([<span class="string">'wo'</span>,<span class="string">'ai'</span>,<span class="string">'bei'</span>,<span class="string">'jing'</span>,<span class="string">'tian'</span>,<span class="string">'an'</span>,<span class="string">'men'</span>])</div></pre></td></tr></table></figure>
 
-<p>测试结果如下：<br><img src="/img/main-result.png" alt="测试结果"></p>
+<p>测试结果如下：<br><img src="/img/pinyin-input-method/main-result.png" alt="测试结果"></p>
 <h2 id="获得代码">获得代码</h2>
 <p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
   
@@ -217,7 +217,7 @@
 		
 			<li><a href="/categories/python/NLP/" title="NLP">NLP<sup>4</sup></a></li>
 		
-			<li><a href="/categories/python/" title="python">python<sup>4</sup></a></li>
+			<li><a href="/categories/python/" title="python">python<sup>5</sup></a></li>
 		
 		</ul>
 </div>
@@ -228,17 +228,23 @@
 	<p class="asidetitle">Tags</p>
 		<ul class="clearfix">
 		
+			<li><a href="/tags/python/" title="python">python<sup>5</sup></a></li>
+		
 			<li><a href="/tags/NLP/" title="NLP">NLP<sup>4</sup></a></li>
 		
-			<li><a href="/tags/python/" title="python">python<sup>4</sup></a></li>
-		
-			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
-		
-			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
 		
 			<li><a href="/tags/pinyin/" title="pinyin">pinyin<sup>2</sup></a></li>
 		
-			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
+			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+		
+			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
+		
+			<li><a href="/tags/firefox/" title="firefox">firefox<sup>1</sup></a></li>
+		
+			<li><a href="/tags/url/" title="url">url<sup>1</sup></a></li>
+		
+			<li><a href="/tags/dbank/" title="dbank">dbank<sup>1</sup></a></li>
 		
 			<li><a href="/tags/viterbi/" title="viterbi">viterbi<sup>1</sup></a></li>
 		

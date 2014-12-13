@@ -105,7 +105,7 @@
 <li>本篇博客：如何将<code>ceshizhongwenshurufa</code>这样的拼音流切分为以上形式。</li>
 </ul>
 <h2 id="建立拼音Tire树">建立拼音Tire树</h2>
-<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-trie.png" alt="拼音Tire树"></p>
+<p>建立一个如下图所示的Tire树结构：<br><img src="/img/pinyin-input-method/pinyin-trie.png" alt="拼音Tire树"></p>
 <ul>
 <li>在音节树中, 根结点的儿子为所有的可作为拼音开头的字母。</li>
 <li>再有这些字母生出合法的音节, 其中灰色的节点表示不可终结。</li>
@@ -129,7 +129,7 @@
 <p>初始化时，读取文件建立Tire树</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, pinyins)</span>:</span></div><div class="line">    self.pinyins = pinyins</div><div class="line">    <span class="comment"># 读入所有有效拼音</span></div><div class="line">    self.tree = Trie()</div><div class="line">    f = open(<span class="string">'pinyin/pinyin_list.txt'</span>)</div><div class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> f:</div><div class="line">        self.tree.insert(line.split()[<span class="number">0</span>])</div><div class="line">    f.close()</div></pre></td></tr></table></figure>
 
-<p>切分的主函数流程<br><img src="/img/pinyin-split.png" alt="切分算法流程"></p>
+<p>切分的主函数流程<br><img src="/img/pinyin-input-method/pinyin-split.png" alt="切分算法流程"></p>
 <ul>
 <li>算法根据汉语拼音的规则, 对用户输入的合法拼音流进行切分。</li>
 <li>为了程序实现上述算法，需要建立以下结构：<ol>
@@ -147,7 +147,7 @@
 <h2 id="测试">测试</h2>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    pinyins = pinyin(<span class="string">'woaizhonghuarenmingongheguo'</span>)</div><div class="line">    <span class="keyword">print</span> pinyins.split()</div></pre></td></tr></table></figure>
 
-<p>测试结果如下：<br><img src="/img/pinyin-result.png" alt="测试结果"></p>
+<p>测试结果如下：<br><img src="/img/pinyin-input-method/pinyin-result.png" alt="测试结果"></p>
 <h2 id="获得代码">获得代码</h2>
 <p>代码已放到GitHub上：<a href="https://github.com/songboyu/NLP-test" target="_blank" rel="external">python实现简易中文输入法</a></p>
   
@@ -180,6 +180,14 @@
 	
 <nav class="article-nav clearfix">
  
+ <div class="prev" >
+ <a href="/2014/12/13/get-dbank-download-url/" title="Firefox调试实战----解析华为网盘内容下载链接">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Firefox调试实战----解析华为网盘内容下载链接</span>
+</a>
+</div>
+
 
 <div class="next">
 <a href="/2014/12/12/python-simple-chinese-input-method-03/"  title="python实现简易中文输入法（三）：拼音序列转为汉字串">
@@ -218,7 +226,7 @@
 		
 			<li><a href="/categories/python/NLP/" title="NLP">NLP<sup>4</sup></a></li>
 		
-			<li><a href="/categories/python/" title="python">python<sup>4</sup></a></li>
+			<li><a href="/categories/python/" title="python">python<sup>5</sup></a></li>
 		
 		</ul>
 </div>
@@ -229,17 +237,23 @@
 	<p class="asidetitle">Tags</p>
 		<ul class="clearfix">
 		
+			<li><a href="/tags/python/" title="python">python<sup>5</sup></a></li>
+		
 			<li><a href="/tags/NLP/" title="NLP">NLP<sup>4</sup></a></li>
 		
-			<li><a href="/tags/python/" title="python">python<sup>4</sup></a></li>
-		
-			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
-		
-			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
 		
 			<li><a href="/tags/pinyin/" title="pinyin">pinyin<sup>2</sup></a></li>
 		
-			<li><a href="/tags/split/" title="split">split<sup>2</sup></a></li>
+			<li><a href="/tags/ngram/" title="ngram">ngram<sup>2</sup></a></li>
+		
+			<li><a href="/tags/HMM/" title="HMM">HMM<sup>2</sup></a></li>
+		
+			<li><a href="/tags/firefox/" title="firefox">firefox<sup>1</sup></a></li>
+		
+			<li><a href="/tags/url/" title="url">url<sup>1</sup></a></li>
+		
+			<li><a href="/tags/dbank/" title="dbank">dbank<sup>1</sup></a></li>
 		
 			<li><a href="/tags/viterbi/" title="viterbi">viterbi<sup>1</sup></a></li>
 		
