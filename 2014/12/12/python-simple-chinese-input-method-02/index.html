@@ -9,7 +9,8 @@
     
     <meta name="author" content="Songboyu">
     
-    <meta name="description" content="分词和统计词频之后便是如何将数据模型加载到内存中
+    <meta name="description" content="改编自搜不狐
+分词和统计词频之后便是如何将数据模型加载到内存中
 使用的词典文件结构：语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：">
     
     
@@ -92,7 +93,8 @@
 		
 		</div>
 		
-		<p>分词和统计词频之后便是如何将数据模型加载到内存中</p>
+		<p>改编自<a href="http://sobuhu.com/ml/2013/03/07/hmm-pinyin-input-method.html" target="_blank" rel="external">搜不狐</a></p>
+<p>分词和统计词频之后便是如何将数据模型加载到内存中</p>
 <p>使用的词典文件结构：<br><img src="/img/pinyin-input-method/dict.png" alt="词典文件"><br>语料经过上个步骤的词频统计得到了一元、二元词频文件，结构如下：<br><a id="more"></a><br><img src="/img/pinyin-input-method/unigram.png" alt="一元词频"><br><img src="/img/pinyin-input-method/bigram.png" alt="二元词频"></p>
 <p>下面我们开始加载语言模型。<br>一元和二元词频都放在同一个dict中</p>
 <h2 id="加载一元词频">加载一元词频</h2>

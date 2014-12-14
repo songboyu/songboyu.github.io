@@ -61,6 +61,7 @@ def dbank_final_url(url):
     html = resp.content
     g = re.findall(r'"downloadurl":"(.*?)"', html)[0]
     e = re.findall(r'"encryKey":"(.*?)"', html)[0]
+    return decrypt(g, e)
 
 if __name__ == '__main__':
     print dbank_final_url('http://dl.vmall.com/c0xn8jav5v')
