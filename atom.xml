@@ -4,7 +4,7 @@
   <subtitle><![CDATA[生活赋予我们一种巨大而又无限高贵的礼品，这就是青春。]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://yoursite.com/"/>
-  <updated>2014-12-17T06:28:37.199Z</updated>
+  <updated>2014-12-17T06:33:33.620Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,11 +15,11 @@
   <generator uri="http://zespia.tw/hexo/">Hexo</generator>
   
   <entry>
-    <title><![CDATA[taopp学习笔记：1.1 左旋转字符串]]></title>
+    <title><![CDATA[学习笔记：1.1 左旋转字符串]]></title>
     <link href="http://yoursite.com/2014/12/17/taopp-1-1/"/>
     <id>http://yoursite.com/2014/12/17/taopp-1-1/</id>
     <published>2014-12-17T02:19:19.000Z</published>
-    <updated>2014-12-17T06:27:41.000Z</updated>
+    <updated>2014-12-17T06:33:16.000Z</updated>
     <content type="html"><![CDATA[<p><a href="https://github.com/julycoding/The-Art-Of-Programming-By-July/blob/master/ebook/zh/01.01.md" target="_blank" rel="external">源地址</a></p>
 <h2 id="题目描述">题目描述</h2>
 <p>给定一个字符串，要求把字符串前面的<code>m</code>个字符移动到字符串的尾部，如把字符串<code>abcdef</code>前面的2个字符’a’和’b’移动到字符串的尾部，使得原字符串变成字符串<code>cdefab</code>。<br>请写一个函数完成此功能，要求对长度为<code>n</code>的字符串操作的时间复杂度为 O(n)，空间复杂度为 O(1)。<br><a id="more"></a></p>
@@ -105,7 +105,7 @@ m = <span class="transposed_variable">m'</span> * <span class="built_in">gcd</sp
 
 <p>时间复杂度 O(n)，空间复杂度O(1)</p>
 <h2 id="获得代码">获得代码</h2>
-<p><a href="https://github.com/songboyu/The-Art-Of-Programming/blob/master/1.string/1.1.c" target="_blank" rel="external">taopp学习—1.1字符串翻转</a></p>
+<p><a href="https://github.com/songboyu/The-Art-Of-Programming/blob/master/1.string/1.1.c" target="_blank" rel="external">学习笔记：1.1字符串翻转</a></p>
 ]]></content>
     <summary type="html">
     <![CDATA[<p><a href="https://github.com/julycoding/The-Art-Of-Programming-By-July/blob/master/ebook/zh/01.01.md" target="_blank" rel="external">源地址</a></p>
