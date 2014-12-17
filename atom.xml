@@ -4,7 +4,7 @@
   <subtitle><![CDATA[生活赋予我们一种巨大而又无限高贵的礼品，这就是青春。]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://yoursite.com/"/>
-  <updated>2014-12-14T08:34:50.310Z</updated>
+  <updated>2014-12-17T06:28:37.199Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -13,6 +13,120 @@
   </author>
   
   <generator uri="http://zespia.tw/hexo/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[taopp学习笔记：1.1 左旋转字符串]]></title>
+    <link href="http://yoursite.com/2014/12/17/taopp-1-1/"/>
+    <id>http://yoursite.com/2014/12/17/taopp-1-1/</id>
+    <published>2014-12-17T02:19:19.000Z</published>
+    <updated>2014-12-17T06:27:41.000Z</updated>
+    <content type="html"><![CDATA[<p><a href="https://github.com/julycoding/The-Art-Of-Programming-By-July/blob/master/ebook/zh/01.01.md" target="_blank" rel="external">源地址</a></p>
+<h2 id="题目描述">题目描述</h2>
+<p>给定一个字符串，要求把字符串前面的<code>m</code>个字符移动到字符串的尾部，如把字符串<code>abcdef</code>前面的2个字符’a’和’b’移动到字符串的尾部，使得原字符串变成字符串<code>cdefab</code>。<br>请写一个函数完成此功能，要求对长度为<code>n</code>的字符串操作的时间复杂度为 O(n)，空间复杂度为 O(1)。<br><a id="more"></a></p>
+<h2 id="解法">解法</h2>
+<h3 id="×_暴力移位法">× 暴力移位法</h3>
+<p>最容易想到的解法，每次内循环将字符串第一个字符移动到尾部，移动<code>m</code>次。<br>时间复杂度 O(m * n)，空间复杂度O(1)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> LeftRotateString_01(<span class="keyword">char</span>* s, <span class="keyword">int</span> m){</div><div class="line">    <span class="keyword">int</span> n = <span class="built_in">strlen</span>(s);</div><div class="line">    m %= n;</div><div class="line">    <span class="keyword">while</span>(m--){</div><div class="line">        <span class="keyword">char</span> t = s[<span class="number">0</span>];</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>; i&lt;n; i++){</div><div class="line">            s[i-<span class="number">1</span>] = s[i];</div><div class="line">        }</div><div class="line">        s[n-<span class="number">1</span>] = t;</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h3 id="×_空间换时间法1">× 空间换时间法1</h3>
+<p>申请一块<code>2n</code>长度的内存，将字符串复制两遍到新内存，再截取<code>m</code>到<code>n+m</code>之间内容作为结果<br>时间复杂度 O(2n)，空间复杂度O(2n)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> LeftRotateString_02(<span class="keyword">char</span>* s, <span class="keyword">int</span> m){</div><div class="line">    <span class="keyword">int</span> n = <span class="built_in">strlen</span>(s);</div><div class="line">    m %= n;</div><div class="line">    <span class="keyword">char</span> p[<span class="number">2</span>*n];</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;n; i++){</div><div class="line">        p[n+i] = p[i] = s[i];</div><div class="line">    }</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;n; i++){</div><div class="line">        s[i] = p[i+m];</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h3 id="×_空间换时间法2">× 空间换时间法2</h3>
+<p>申请一块<code>m</code>长度的内存，存储要移动的所有字符。<br>将字符串第<code>i</code>位赋值为<code>i+m</code>位字符，再将结尾赋值为新内存内容。<br>时间复杂度 O(n+m)，空间复杂度O(m)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> LeftRotateString_03(<span class="keyword">char</span>* s, <span class="keyword">int</span> m){</div><div class="line">    <span class="keyword">int</span> n = <span class="built_in">strlen</span>(s);</div><div class="line">    m %= n;</div><div class="line">    <span class="keyword">char</span> tmp[m];</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;m; i++){</div><div class="line">        tmp[i] = s[i];</div><div class="line">    }</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;n-m; i++){</div><div class="line">        s[i] = s[i + m];</div><div class="line">    }</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;m; i++){</div><div class="line">        s[i+n-m] = tmp[i];</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h3 id="×_分组交换法">× 分组交换法</h3>
+<p>算法步骤示例（假设m=3）：</p>
+<ul>
+<li><code>abc</code> def ghi jk</li>
+<li>def <code>abc</code> ghi jk</li>
+<li>def ghi <code>abc</code> jk</li>
+<li>def ghi jk <code>abc</code></li>
+</ul>
+<p><strong> 步骤1 </strong><br>每m个字符分为一组<br>将第一组不断向后移位，直到后面的字符数不足m<br>这一过程中需要两个指针p1,p2记录位置，对照上述步骤示意：<br><img src="/img/taopp/1.1/1.png" alt=""></p>
+<ol>
+<li>交换p1,p2字符</li>
+<li>p1++; p2++;</li>
+</ol>
+<p><img src="/img/taopp/1.1/2.png" alt=""></p>
+<p><strong> 步骤2 </strong><br>对照上述步骤示意，步骤一结束后，状态为第三行，p2指向<code>j</code><br>然后，对于<code>abc</code>后面的每一个字符，分别向前移位m次，p1++; p2++;</p>
+<p>时间复杂度 O(m + n)，空间复杂度O(1)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> swap(<span class="keyword">char</span>* a, <span class="keyword">char</span>* b){</div><div class="line">    <span class="keyword">char</span> temp = *a;</div><div class="line">    *a = *b;</div><div class="line">    *b = temp;</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keyword">void</span> LeftRotateString_03(<span class="keyword">char</span>* s, <span class="keyword">int</span> m){</div><div class="line">    <span class="keyword">int</span> n = <span class="built_in">strlen</span>(s);</div><div class="line">    m %= n;</div><div class="line">    <span class="keyword">int</span> p1 = <span class="number">0</span>;</div><div class="line">    <span class="keyword">int</span> p2 = m;</div><div class="line">    <span class="keyword">int</span> step = m;</div><div class="line">    <span class="comment">// 步骤1</span></div><div class="line">    <span class="comment">// 判断p2+m-1是否越界</span></div><div class="line">    <span class="keyword">while</span>(p2+m-<span class="number">1</span> &lt; n){</div><div class="line">        step = m;</div><div class="line">        <span class="keyword">while</span>(step--){</div><div class="line">            <span class="comment">// 交换p1,p2</span></div><div class="line">            swap(&s[p1], &s[p2]);</div><div class="line"></div><div class="line">            p1++;</div><div class="line">            p2++;</div><div class="line">        }</div><div class="line">    }</div><div class="line">    <span class="comment">// 步骤2</span></div><div class="line">    <span class="keyword">int</span> count = n - p2;</div><div class="line">    <span class="keyword">while</span>(count--){</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=p2; i&gt;p1; i--){</div><div class="line">            swap(&s[i], &s[i-<span class="number">1</span>]);</div><div class="line">        }</div><div class="line">        p1++;</div><div class="line">        p2++;</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h3 id="√_三步翻转法（STL的rotate三种迭代器之一）">√ 三步翻转法（STL的rotate三种迭代器之一）</h3>
+<p>这大概是最简单最巧妙的方法了<br>July给出了一张帮助理解的示意图<br><img src="/img/taopp/1.1/3.png" alt=""></p>
+<ol>
+<li>伸出两手，掌心面向自己，左手在上右手在下</li>
+<li>翻转左手，背向自己</li>
+<li>翻转右手，背向自己</li>
+<li>翻转两手，掌心面向自己</li>
+</ol>
+<p>结果右手在上左手在下</p>
+<p><code>n=10, m=5</code><br>初始状态： <code>12345</code> 678910<br>结束状态： 678910 <code>12345</code></p>
+<p>时间复杂度 O(n)，空间复杂度O(1)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> ReverseString(<span class="keyword">char</span>* s,<span class="keyword">int</span> start, <span class="keyword">int</span> end){</div><div class="line">    <span class="keyword">while</span>(start &lt; end){</div><div class="line">        <span class="keyword">char</span> t = s[start];</div><div class="line">        s[start++] = s[end];</div><div class="line">        s[end--] = t;</div><div class="line">    }</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keyword">void</span> LeftRotateString_04(<span class="keyword">char</span>* s, <span class="keyword">int</span> m){</div><div class="line">    <span class="keyword">int</span> n = <span class="built_in">strlen</span>(s);</div><div class="line">    m %= n;</div><div class="line">    ReverseString(s, <span class="number">0</span>, m-<span class="number">1</span>);</div><div class="line">    ReverseString(s, m, n-<span class="number">1</span>);</div><div class="line">    ReverseString(s, <span class="number">0</span>, n-<span class="number">1</span>);</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h3 id="√_gcd插值法（STL的rotate三种迭代器之一）">√ gcd插值法（STL的rotate三种迭代器之一）</h3>
+<blockquote>
+<p>ys：这条思路个人认为绝妙，也正好说明了数学对算法的重要影响。</p>
+</blockquote>
+<h4 id="对于m、n互质的情况">对于m、n互质的情况</h4>
+<p>用<code>(j + m) % n</code>即可遍历每一个字符，且间隔为<code>m</code>，没有重复<br>因此可以将遍历过程中每一个字符赋值到前一个位置，即可达到左旋转字符串的目的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> tmp = s[<span class="number">0</span>];</div><div class="line"><span class="keyword">int</span> next = <span class="number">0</span>;</div><div class="line"></div><div class="line"><span class="keyword">for</span> (<span class="keyword">int</span> j = m % n; j != n; j = (j + m) % n){</div><div class="line">    s[next] = s[j];</div><div class="line">    next = j;</div><div class="line">}</div><div class="line">s[next] = tmp;</div></pre></td></tr></table></figure>
+
+<h4 id="对于m、n非互质的情况">对于m、n非互质的情况</h4>
+<p>用<code>(j + m) % n</code>遍历字符串时，未遍历完成就会出现一个位置使<code>(j + m) % n</code>为<code>0</code>，即(j + m)整除了n。<br>继续进行遍历将回到之前位置陷入循环，没有意义。这样的一个循环构成一个循环链。</p>
+<p><strong>一共有多少个循环链呢？</strong></p>
+<p>我们换一个位置1开始，用<code>(1 + j + m) % n</code>遍历，发现一样陷入了循环。<br>我们再多换几个位置<code>i</code>开始，用<code>(i + j + m) % n</code>遍历，发现都会陷入循环，而且链上的字符数固定。</p>
+<p>这样，我们只要求出每个循环链上的字符个数，即可得出<strong>一共有多少循环链</strong><br>然后遍历每一条循环链，即可达到左旋转字符串的目的！</p>
+<pre><code>我们发现每条循环链上都出现一个位置使 (<span class="built_in">i</span> + <span class="built_in">j</span> + m) <span class="comment">% n 为 i</span>
+即存在正整数 k,使得 n|km，且min(k)即是每条循环链上字符个数(<span class="string">'3|9'</span> 表示<span class="number">3</span>能整除<span class="number">9</span>)
+
+设：
+n = <span class="transposed_variable">n'</span> * <span class="built_in">gcd</span>(n,m)
+m = <span class="transposed_variable">m'</span> * <span class="built_in">gcd</span>(n,m)
+
+由于 n|km 
+所以 <span class="transposed_variable">n'</span>|<span class="transposed_variable">km'</span>
+
+由于 <span class="transposed_variable">n'</span>和<span class="transposed_variable">m'</span> 互素
+所以 <span class="transposed_variable">n'</span>|k 
+即 (n/<span class="built_in">gcd</span>(n,m)|k)
+
+所以每条循环链上有 n/<span class="built_in">gcd</span>(n,m) 个字符
+所以一共有<span class="built_in">gcd</span>(n,m)个循环链！
+</code></pre><p>gcd(求最大公约数)代码如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> gcd(<span class="keyword">int</span> m, <span class="keyword">int</span> n){</div><div class="line">    <span class="keyword">int</span> r;</div><div class="line">    <span class="keyword">while</span> ((r = m % n)){</div><div class="line">        m = n;</div><div class="line">        n = r;</div><div class="line">    }</div><div class="line">    <span class="keyword">return</span> n;</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h4 id="小结">小结</h4>
+<p>针对以上两种情况，可以得出如下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> LeftRotateString_06(<span class="keyword">char</span>* s, <span class="keyword">int</span> m){</div><div class="line">    <span class="keyword">int</span> n = <span class="built_in">strlen</span>(s);</div><div class="line">    m %= n;</div><div class="line">    <span class="keyword">int</span> d = gcd(n, m);</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; d; i ++){</div><div class="line">        <span class="keyword">char</span> tmp = s[i];</div><div class="line">        <span class="keyword">int</span> next = i;</div><div class="line"></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = (i + m) % n; j != i; j = (j + m) % n){</div><div class="line">            s[next] = s[j];</div><div class="line">            next = j;</div><div class="line">        }</div><div class="line">        s[next] = tmp;</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<p>时间复杂度 O(n)，空间复杂度O(1)</p>
+<h2 id="获得代码">获得代码</h2>
+<p><a href="https://github.com/songboyu/The-Art-Of-Programming/blob/master/1.string/1.1.c" target="_blank" rel="external">taopp学习—1.1字符串翻转</a></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p><a href="https://github.com/julycoding/The-Art-Of-Programming-By-July/blob/master/ebook/zh/01.01.md" target="_blank" rel="external">源地址</a></p>
+<h2 id="题目描述">题目描述</h2>
+<p>给定一个字符串，要求把字符串前面的<code>m</code>个字符移动到字符串的尾部，如把字符串<code>abcdef</code>前面的2个字符’a’和’b’移动到字符串的尾部，使得原字符串变成字符串<code>cdefab</code>。<br>请写一个函数完成此功能，要求对长度为<code>n</code>的字符串操作的时间复杂度为 O(n)，空间复杂度为 O(1)。<br>]]>
+    
+    </summary>
+    
+      <category term="程序员编程艺术" scheme="http://yoursite.com/tags/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF/"/>
+    
+      <category term="c" scheme="http://yoursite.com/tags/c/"/>
+    
+      <category term="string" scheme="http://yoursite.com/tags/string/"/>
+    
+      <category term="程序员编程艺术" scheme="http://yoursite.com/categories/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF/"/>
+    
+      <category term="c" scheme="http://yoursite.com/categories/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF/c/"/>
+    
+      <category term="string" scheme="http://yoursite.com/categories/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF/c/string/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[Firefox调试实战----解析华为网盘内容下载链接]]></title>
